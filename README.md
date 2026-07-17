@@ -127,6 +127,99 @@ Cada pasta dentro de `features/` segue um conjunto padronizado de submódulos pr
 *   **`index.ts`**: (Obrigatório) **A porta de entrada pública da feature**. Todo elemento que outra feature ou a infraestrutura global precisar acessar (como a `MeasurementsNavigator` sendo puxada pelo `MainTabNavigator`) precisa ser exportado explicitamente aqui. Importações passando pelo `index.ts` evitam o acoplamento excessivo.
 
 ---
+# Arquitetura de Navegação
+
+A navegação do **Pressão Fácil** foi desenhada para seguir o modelo do *React Navigation v7*, totalmente adaptada ao paradigma *Feature-Sliced Design*. Isso significa que as rotas globais não conhecem as telas diretamente, elas apenas orquestram os "Navigators" expostos por cada feature.
+
+---
+
+## 1. Visão Geral da Topologia (Árvore de Navegação)
+
+A estrutura de navegação do aplicativo é dividida em três níveis de profundidade: **Root**, **Tabs** e **Stacks das Features**.
+
+```mermaid
+graph TD
+    Root[Root Navigator] --> AuthStack[Auth Navigator]
+    Root --> MainTabs[Main Tab Navigator]
+    
+    AuthStack --> Login(LoginScreen)
+    AuthStack --> Cadastro(CadastroScreen)
+    AuthStack --> Esqueci(EsqueciSenhaScreen)
+
+    MainTabs --> TabHome(Aba Início)
+    MainTabs --> TabHistorico(Aba Histórico)
+    MainTabs --> TabNova(Aba Nova Medição)
+    MainTabs --> TabPerfil(Aba Perfil)
+
+    TabHome --> DashboardStack[Dashboard Navigator]
+    TabHistorico --> MeasurementListStack[Measurements Navigator]
+    TabNova --> MeasurementNewStack[Measurements Navigator]
+    TabPerfil --> ProfileStack[Profile Navigator]
+
+    DashboardStack --> Home(HomeScreen)
+    MeasurementListStack --> Historico(HistoricoMedicoesScreen)
+    MeasurementListStack --> Detalhes(DetalhesMedicaoScreen)
+    MeasurementNewStack --> NovaMedicao(NovaMedicaoScreen)
+    ProfileStack --> Perfil(PerfilScreen)
+```
+
+---
+
+## 2. Nível 1: `RootNavigator` (Orquestrador Global)
+Localizado em `src/app/navigation/RootNavigator.tsx`.
+
+O `RootNavigator` atua como um semáforo (Switch). Ele observa a *Store de Sessão* para decidir qual fluxo o usuário deve ver. Ele impede que um usuário deslogado acesse a aplicação, e que um usuário logado volte para a tela de login pelo botão "voltar" nativo.
+
+*   **Se `user == null`**: Monta o `AuthNavigator` (Fluxo Público).
+*   **Se `user != null`**: Monta o `MainTabNavigator` (Fluxo Autenticado).
+
+---
+
+## 3. Nível 2: `MainTabNavigator` (Orquestrador de Abas)
+Localizado em `src/app/navigation/MainTabNavigator.tsx`.
+
+É o roteador inferior do aplicativo (Bottom Tabs). Ele compõe a navegação primária inserindo os *Navigators* das features dentro das abas.
+
+1.  **Aba "Início"**: Renderiza o `DashboardNavigator` (vindo da feature `dashboard`).
+2.  **Aba "Histórico"**: Renderiza o `MeasurementsNavigator` configurado para abrir a rota `HistoricoMedicoesScreen`.
+3.  **Aba "Nova Medição"**: Renderiza o `MeasurementsNavigator` configurado para abrir diretamente a rota `NovaMedicaoScreen` (ou pode chamar um Modal global vindo da Tab).
+4.  **Aba "Perfil"**: Renderiza o `ProfileNavigator` (vindo da feature `profile`).
+
+---
+
+## 4. Nível 3: Navigators das Features
+Cada feature complexa (que possui mais de uma tela ou precisa encapsular cabeçalhos) gerencia sua própria pilha (Stack) de telas. Isso garante que a feature `auth`, por exemplo, decida sozinha como fluir da tela de Login para a de Cadastro.
+
+### 🔐 Feature: Auth (`AuthNavigator`)
+Responsável pelo onboarding e acesso do usuário.
+- `LoginScreen` (Rota inicial)
+- `CadastroScreen` (Acessado a partir do Login)
+- `EsqueciSenhaScreen` (Acessado a partir do Login)
+
+### 📊 Feature: Measurements (`MeasurementsNavigator`)
+Esta feature contém as telas cruciais da regra de negócio. O Navigator interno permite o livre trânsito entre as telas de pressão.
+- `HistoricoMedicoesScreen` (Lista de dados guardados)
+- `DetalhesMedicaoScreen` (Ao clicar em um item da lista)
+- `NovaMedicaoScreen` (O formulário de cadastro de pressão)
+
+### 🏠 Features de Tela Única (Dashboard, Profile, Alerts)
+Ainda que tenham apenas uma tela (`HomeScreen`, `PerfilScreen`), elas são envelopadas em um *Navigator* próprio (ex: `DashboardNavigator`). 
+**Por que?** Porque caso no futuro o *Dashboard* precise ter uma "Sub-tela de Notificações", o time adiciona essa rota dentro do `DashboardNavigator` e nada quebra no orquestrador global (Abas).
+
+---
+
+## 5. Como uma Feature navega para outra?
+
+De acordo com o *Feature-Sliced Design*, as telas de uma feature não importam telas de outra. 
+
+Se a `HomeScreen` (dashboard) precisa colocar um atalho para a tela de `Alertas`, como ela faz?
+A navegação global é gerenciada por rotas nomeadas estritas em `shared/types/navigation.ts`.
+
+A `HomeScreen` irá utilizar o `useNavigation` puxando o contrato global:
+```typescript
+navigation.navigate('AlertsStack', { screen: 'Alertas' });
+```
+Dessa forma, a tela que solicitou a mudança de rota apenas envia uma "mensagem/intenção" para o Orquestrador Global de que deseja ir para um destino, sem precisar de acoplamento rígido de importação de telas de fora do seu domínio.
 
 ## Como Executar o Projeto
 
