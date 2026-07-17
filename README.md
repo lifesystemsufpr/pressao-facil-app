@@ -17,7 +17,7 @@ O app permite que o usuário registre suas medições de pressão arterial e fre
 
 ## Público-alvo
 
-O design prioriza legibilidade, alto contraste, tipografia acessível (Atkinson Hyperlegible) e elementos de toque generosos, voltados especialmente para o público idoso e pessoas com hipertensão que precisam de acompanhamento contínuo da própria saúde.
+O design prioriza legibilidade, alto contraste, tipografia acessível e elementos de toque generosos, voltados especialmente para o público idoso e pessoas com hipertensão que precisam de acompanhamento contínuo da própria saúde.
 
 ## Stack técnica
 
@@ -119,16 +119,13 @@ src/app/
 
 Cada pasta dentro de `features/` segue um conjunto padronizado de submódulos projetado para a arquitetura Offline-First.
 
-*   **`types/`**: Contém o **Modelo de Domínio Limpo**. Aqui você define as interfaces Typescript (ex: `Medicao`, `PerfilUsuario`). Como não há DTOs e Mappers, é exatamente este tipo que será processado e salvo no LocalStorage.
+*   **`types/`**: Contém o **Modelo de Domínio Limpo**. Aqui se define as interfaces Typescript (ex: `Medicao`, `PerfilUsuario`). Como não há DTOs e Mappers, é exatamente este tipo que será processado e salvo no LocalStorage.
 *   **`store/`**: Onde os dados ganham persistência e reatividade. Usando *Zustand* combinado ao *AsyncStorage*, a store mantém o estado local em memória e sincroniza a gravação para o disco do celular automaticamente.
 *   **`hooks/`**: Integra as regras da Store com a UI. Serve para facilitar abstrações (ex: `useDashboardSummary` pode ler dados da `medicoesStore` para calcular a média e devolver para a tela sem bloquear a renderização principal).
 *   **`services/`**: Lógicas de negócio mais pesadas que não têm relação com o React e não dependem do ciclo de vida de um componente (ex: cálculos estatísticos do histórico ou agendamento local de notificações).
 *   **`screens/` e `navigation/`**: Camada estrita de visualização. As telas (`Screens`) não gerenciam persistência nem tomam decisões de negócio, apenas injetam os Hooks/Stores e renderizam a UI. O `Navigator` interno orquestra os passos de telas que pertencem apenas àquela feature.
 *   **`index.ts`**: (Obrigatório) **A porta de entrada pública da feature**. Todo elemento que outra feature ou a infraestrutura global precisar acessar (como a `MeasurementsNavigator` sendo puxada pelo `MainTabNavigator`) precisa ser exportado explicitamente aqui. Importações passando pelo `index.ts` evitam o acoplamento excessivo.
 
-Aqui está o Markdown exato da seção que foi adicionada ao final do documento para você copiar:
-
-```markdown
 ---
 
 ## Como Executar o Projeto
