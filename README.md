@@ -219,7 +219,122 @@ A `HomeScreen` irá utilizar o `useNavigation` puxando o contrato global:
 ```typescript
 navigation.navigate('AlertsStack', { screen: 'Alertas' });
 ```
-Dessa forma, a tela que solicitou a mudança de rota apenas envia uma "mensagem/intenção" para o Orquestrador Global de que deseja ir para um destino, sem precisar de acoplamento rígido de importação de telas de fora do seu domínio.
+# Arquitetura de Persistência (LocalStorage)
+
+Como o aplicativo **Pressão Fácil** é *Offline-First* (não consome uma API externa), toda a persistência de dados é feita localmente no dispositivo do usuário. Para garantir performance, escalabilidade e código limpo, adotamos a combinação de **Zustand** (gerenciamento de estado) com o **AsyncStorage** (banco de dados chave-valor do React Native).
+
+---
+
+## 1. Como Funciona o Fluxo de Dados?
+
+O grande diferencial dessa arquitetura é que **os componentes visuais (Telas) NUNCA interagem diretamente com o AsyncStorage**. O fluxo ocorre da seguinte forma:
+
+1. A **Tela (Screen)** chama uma função da **Store (Zustand)** (ex: `salvarMedicao()`).
+2. A **Store** atualiza o estado em *memória RAM* (para que a tela reaja e atualize instantaneamente, sem delay).
+3. Em *background*, o **Middleware Persist** do Zustand serializa (JSON) o novo estado e salva no **AsyncStorage** do celular.
+4. Quando o aplicativo é reaberto, o Zustand lê o AsyncStorage e carrega os dados de volta para a RAM (processo chamado de *Reidratação* ou *Hydration*).
+
+```mermaid
+sequenceDiagram
+    participant UI as Tela (Componente)
+    participant Store as Zustand (Memória)
+    participant Disk as AsyncStorage (Disco)
+
+    UI->>Store: addMedicao({ sistolica: 120, diastolica: 80 })
+    Store-->>UI: Estado atualizado (Tela re-renderiza)
+    Store->>Disk: JSON.stringify() + setItem() (Background)
+    
+    Note over UI,Disk: Ao fechar e abrir o App:
+    Disk->>Store: getItem() + JSON.parse() (Reidratação)
+```
+
+---
+
+## 2. Isolamento por Feature (Feature-Sliced Design)
+
+Em vez de ter um "banco de dados global" gigante e difícil de manter, o armazenamento é **fatiado por contexto de negócio**. Cada feature tem a sua própria *Store* e a sua própria chave no `AsyncStorage`.
+
+### 🗃️ `medicoesStore` (Feature: Measurements)
+*   **Chave no Disco**: `pressao-facil-storage-medicoes`
+*   **O que salva**: Array com o histórico completo de medições de pressão do usuário.
+*   **Comportamento**: Apenas adiciona e lista dados.
+
+### 👤 `authStore` / `sessionStore` (Feature: Auth / Infra: Shared)
+*   **Chave no Disco**: `pressao-facil-storage-sessao`
+*   **O que salva**: Tokens locais (se houver), status de "primeiro acesso" (para pular o Onboarding) e PIN biométrico.
+
+### ⚙️ `perfilStore` (Feature: Profile)
+*   **Chave no Disco**: `pressao-facil-storage-perfil`
+*   **O que salva**: Nome do usuário, idade, peso e contatos de emergência.
+
+---
+
+## 3. Exemplo Prático de Implementação (Template)
+
+Abaixo está o padrão arquitetural de como uma *Store* é criada no projeto (`src/app/features/measurements/store/medicoesStore.ts`):
+
+```typescript
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Medicao } from '../types';
+
+interface MedicoesState {
+  historico: Medicao[];
+  adicionarMedicao: (medicao: Medicao) => void;
+  limparHistorico: () => void;
+}
+
+export const useMedicoesStore = create<MedicoesState>()(
+  persist(
+    (set) => ({
+      historico: [],
+      
+      // Atualiza a memória. O 'persist' salva no disco automaticamente.
+      adicionarMedicao: (medicao) => 
+        set((state) => ({ historico: [medicao, ...state.historico] })),
+        
+      limparHistorico: () => set({ historico: [] }),
+    }),
+    {
+      name: 'pressao-facil-storage-medicoes', // Chave única no AsyncStorage
+      storage: createJSONStorage(() => AsyncStorage), 
+    }
+  )
+);
+```
+
+### Como a Tela consome essa Store?
+
+Na tela (`NovaMedicaoScreen.tsx`), o uso se torna extremamente limpo, sem `await` e sem lidar com conversões JSON:
+
+```tsx
+import { useMedicoesStore } from '../store/medicoesStore';
+
+export function NovaMedicaoScreen() {
+  const adicionar = useMedicoesStore((state) => state.adicionarMedicao);
+
+  const handleSalvar = () => {
+    adicionar({
+      id: Date.now().toString(),
+      sistolica: 120,
+      diastolica: 80,
+      data: new Date().toISOString()
+    });
+    // Voltar para a tela anterior...
+  };
+
+  return <Button onPress={handleSalvar}>Salvar Medição</Button>;
+}
+```
+
+---
+
+## 4. Cuidados e Boas Práticas Adotadas
+
+1. **Limite de Tamanho**: O `AsyncStorage` tem um limite teórico flexível, mas no Android geralmente gira em torno de 6MB a 50MB por padrão. Como estamos salvando apenas textos JSON (histórico de pressão e perfil), podemos guardar dezenas de milhares de registros sem estourar a memória.
+2. **Migrations (Versionamento)**: Se no futuro a estrutura de dados mudar (ex: adicionar campo "frequência cardíaca" no objeto de medição), o middleware `persist` do Zustand possui a propriedade `migrate` para atualizar automaticamente o JSON velho dos usuários antigos para o novo formato.
+3. **Hydration Warning**: Em algumas telas (como a Splash Screen), precisamos garantir que o Zustand já terminou de ler o disco (`_hasHydrated`) antes de redirecionar o usuário para a Home.
 
 ## Como Executar o Projeto
 
