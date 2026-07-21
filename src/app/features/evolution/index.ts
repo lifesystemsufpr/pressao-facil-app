@@ -1,1 +1,3 @@
-export { EvolucaoScreen } from './screens/EvolucaoScreen';
+// Export publico de evolution
+// export * from './screens';
+// export * from './types';

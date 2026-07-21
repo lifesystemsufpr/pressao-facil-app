@@ -1,10 +1,18 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ProfileStackParamList } from '../../../shared/types/navigation';
+import { PerfilScreen } from '../screens/PerfilScreen';
 
-export function ProfileNavigator() {
+const Stack = createNativeStackNavigator<ProfileStackParamList>();
+
+export const ProfileNavigator = () => {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Profile Navigator Stub</Text>
-    </View>
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="Perfil" 
+        component={PerfilScreen} 
+        options={{ title: 'Perfil' }} 
+      />
+    </Stack.Navigator>
   );
-}
+};

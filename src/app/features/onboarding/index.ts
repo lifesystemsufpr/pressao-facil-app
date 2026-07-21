@@ -1,3 +1,3 @@
-// Contrato Público
-export { SplashScreen } from './screens/SplashScreen';
-export { InstrucoesMedicaoScreen } from './screens/InstrucoesMedicaoScreen';
+// Export publico de onboarding
+// export * from './screens';
+// export * from './types';

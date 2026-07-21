@@ -1,1 +1,2 @@
-export { MeasurementsNavigator } from './navigation/MeasurementsNavigator';
+export * from './navigation/MeasurementsNavigator';
+export * from './screens/NovaMedicaoScreen';

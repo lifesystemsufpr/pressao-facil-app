@@ -1,1 +1,1 @@
-// TODO: Hooks de Alertas
+// Hooks da feature alerts

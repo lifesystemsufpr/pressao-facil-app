@@ -1,11 +1,15 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
-export function PerfilScreen() {
+export const PerfilScreen = () => {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Perfil</Text>
-      {/* TODO: Implementar UI e lógica */}
+    <View style={styles.container}>
+      <Text style={styles.title}>Meu Perfil</Text>
     </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  title: { fontSize: 24, fontWeight: 'bold' },
+});

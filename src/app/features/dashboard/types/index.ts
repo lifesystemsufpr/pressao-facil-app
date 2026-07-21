@@ -1,4 +1,1 @@
-export interface DashboardSummary {
-  ultimasMedicoes: any[];
-  mediaAtual: string;
-}
+// Types da feature dashboard

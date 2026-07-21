@@ -1,1 +1,1 @@
-// TODO: Hooks de Medições
+// Hooks da feature measurements

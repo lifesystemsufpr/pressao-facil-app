@@ -1,1 +1,1 @@
-export { AlertsNavigator } from './navigation/AlertsNavigator';
+export * from './navigation/AlertsNavigator';

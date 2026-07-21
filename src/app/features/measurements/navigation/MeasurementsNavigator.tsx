@@ -1,10 +1,24 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { MeasurementsStackParamList } from '../../../shared/types/navigation';
+import { HistoricoMedicoesScreen } from '../screens/HistoricoMedicoesScreen';
+import { DetalhesMedicaoScreen } from '../screens/DetalhesMedicaoScreen';
 
-export function MeasurementsNavigator() {
+const Stack = createNativeStackNavigator<MeasurementsStackParamList>();
+
+export const MeasurementsNavigator = () => {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Measurements Navigator Stub</Text>
-    </View>
+    <Stack.Navigator initialRouteName="HistoricoMedicoes">
+      <Stack.Screen 
+        name="HistoricoMedicoes" 
+        component={HistoricoMedicoesScreen} 
+        options={{ title: 'Histórico' }} 
+      />
+      <Stack.Screen 
+        name="DetalhesMedicao" 
+        component={DetalhesMedicaoScreen} 
+        options={{ title: 'Detalhes' }} 
+      />
+    </Stack.Navigator>
   );
-}
+};

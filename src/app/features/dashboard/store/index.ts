@@ -1,1 +1,1 @@
-// TODO: Store de Dashboard
+// Store da feature dashboard

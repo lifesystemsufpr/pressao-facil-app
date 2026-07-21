@@ -1,11 +1,53 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationProp } from '@react-navigation/native';
+import { MainTabParamList, RootStackParamList } from '../shared/types/navigation';
 
-// TODO: bottom tabs: Início, Histórico, Nova Medição, Perfil
-export function MainTabNavigator() {
+import { DashboardNavigator } from '../features/dashboard';
+import { MeasurementsNavigator } from '../features/measurements';
+import { ProfileNavigator } from '../features/profile';
+
+const Tab = createBottomTabNavigator<MainTabParamList>();
+
+// Um componente vazio pois a aba será interceptada
+const EmptyScreen = () => null;
+
+export const MainTabNavigator = () => {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Main Tab Navigator Stub</Text>
-    </View>
+    <Tab.Navigator screenOptions={{ headerShown: false }}>
+      <Tab.Screen 
+        name="DashboardTab" 
+        component={DashboardNavigator} 
+        options={{ title: 'Início' }}
+      />
+      
+      <Tab.Screen 
+        name="MeasurementsTab" 
+        component={MeasurementsNavigator} 
+        options={{ title: 'Histórico' }}
+      />
+      
+      <Tab.Screen 
+        name="NewMeasurementTab" 
+        component={EmptyScreen} 
+        options={{ title: 'Nova Medição' }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            // Impede a navegação padrão para a aba
+            e.preventDefault();
+            
+            // Cast tipado seguro para alcançar a navegação raiz (RootStack)
+            const rootNavigation = navigation as unknown as NavigationProp<RootStackParamList>;
+            rootNavigation.navigate('NovaMedicaoModal');
+          },
+        })}
+      />
+      
+      <Tab.Screen 
+        name="ProfileTab" 
+        component={ProfileNavigator} 
+        options={{ title: 'Perfil' }}
+      />
+    </Tab.Navigator>
   );
-}
+};

@@ -1,4 +1,1 @@
-export interface SerieHistorica {
-  labels: string[];
-  datasets: number[][];
-}
+// Types da feature evolution
