@@ -1,7 +1,7 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-
+import type { DrawerScreenProps } from '@react-navigation/drawer';
 export type DashboardStackParamList = {
   Home: undefined;
 };
@@ -12,6 +12,10 @@ export type MeasurementsStackParamList = {
   NovaMedicao: undefined;
 };
 
+export type EvolutionStackParamList = {
+  Evolution: undefined;
+};
+
 export type ProfileStackParamList = {
   Perfil: undefined;
 };
@@ -20,16 +24,24 @@ export type AlertsStackParamList = {
   Alerts: undefined;
 };
 
+export type ReportsStackParamList = {
+  Reports: undefined;
+};
+
 export type MainTabParamList = {
   DashboardTab: undefined;
   MeasurementsTab: undefined;
   NewMeasurementTab: undefined; // Aba fake para disparar o Modal
-  ProfileTab: undefined;
+  EvolutionTab: undefined;
 };
 
 export type RootStackParamList = {
   Main: NavigatorScreenParams<MainTabParamList>;
+  MenuScreen: undefined; // Menu lateral customizado
   NovaMedicaoModal: undefined; // Modal Global
+  Alerts: NavigatorScreenParams<AlertsStackParamList>;
+  Reports: NavigatorScreenParams<ReportsStackParamList>;
+  Profile: NavigatorScreenParams<ProfileStackParamList>;
 };
 
 // --- Tipagens Utilitárias para as Telas ---

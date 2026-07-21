@@ -1,12 +1,12 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { AlertsScreen } from '../screens/AlertsScreen';
-import { AlertsStackParamList } from '../../../shared/types/navigation';
+import { ReportsScreen } from '../screens/ReportsScreen';
+import { ReportsStackParamList } from '../../../shared/types/navigation';
 import { HamburgerMenuIcon } from '../../../shared/components/HamburgerMenuIcon';
 
-const Stack = createNativeStackNavigator<AlertsStackParamList>();
+const Stack = createNativeStackNavigator<ReportsStackParamList>();
 
-export const AlertsNavigator = () => {
+export const ReportsNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{ 
@@ -15,9 +15,9 @@ export const AlertsNavigator = () => {
       }}
     >
       <Stack.Screen 
-        name="Alerts" 
-        component={AlertsScreen} 
-        options={{ title: 'Alertas' }} 
+        name="Reports" 
+        component={ReportsScreen} 
+        options={{ title: 'Relatórios' }} 
       />
     </Stack.Navigator>
   );

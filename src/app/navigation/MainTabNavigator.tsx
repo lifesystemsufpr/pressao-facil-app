@@ -5,7 +5,7 @@ import { MainTabParamList, RootStackParamList } from '../shared/types/navigation
 
 import { DashboardNavigator } from '../features/dashboard';
 import { MeasurementsNavigator } from '../features/measurements';
-import { ProfileNavigator } from '../features/profile';
+import { EvolutionNavigator } from '../features/evolution';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -44,9 +44,9 @@ export const MainTabNavigator = () => {
       />
       
       <Tab.Screen 
-        name="ProfileTab" 
-        component={ProfileNavigator} 
-        options={{ title: 'Perfil' }}
+        name="EvolutionTab" 
+        component={EvolutionNavigator} 
+        options={{ title: 'Evolução' }}
       />
     </Tab.Navigator>
   );

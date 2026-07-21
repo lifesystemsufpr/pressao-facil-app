@@ -1,3 +1,3 @@
 // Export publico de reports
-// export * from './screens';
-// export * from './types';
+export * from './navigation/ReportsNavigator';
+export * from './screens/ReportsScreen';

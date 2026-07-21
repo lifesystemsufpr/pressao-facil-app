@@ -1,3 +1,1 @@
-// Export publico de evolution
-// export * from './screens';
-// export * from './types';
+export * from './navigation/EvolutionNavigator';

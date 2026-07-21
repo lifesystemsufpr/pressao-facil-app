@@ -1,12 +1,12 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { DashboardStackParamList } from '../../../shared/types/navigation';
-import { HomeScreen } from '../screens/HomeScreen';
+import { EvolutionScreen } from '../screens/EvolutionScreen';
+import { EvolutionStackParamList } from '../../../shared/types/navigation';
 import { HamburgerMenuIcon } from '../../../shared/components/HamburgerMenuIcon';
 
-const Stack = createNativeStackNavigator<DashboardStackParamList>();
+const Stack = createNativeStackNavigator<EvolutionStackParamList>();
 
-export const DashboardNavigator = () => {
+export const EvolutionNavigator = () => {
   return (
     <Stack.Navigator 
       screenOptions={{ 
@@ -15,9 +15,9 @@ export const DashboardNavigator = () => {
       }}
     >
       <Stack.Screen 
-        name="Home" 
-        component={HomeScreen} 
-        options={{ title: 'Início' }} 
+        name="Evolution" 
+        component={EvolutionScreen} 
+        options={{ title: 'Evolução' }} 
       />
     </Stack.Navigator>
   );

@@ -4,6 +4,10 @@ import { RootStackParamList } from '../shared/types/navigation';
 
 import { MainTabNavigator } from './MainTabNavigator';
 import { NovaMedicaoScreen } from '../features/measurements';
+import { AlertsNavigator } from '../features/alerts';
+import { ReportsNavigator } from '../features/reports';
+import { ProfileNavigator } from '../features/profile';
+import { MenuScreen } from '../shared/components/MenuScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -32,6 +36,15 @@ export const RootNavigator = () => {
         component={NovaMedicaoScreen} 
         options={{ presentation: 'modal', headerShown: true, title: 'Nova Medição' }}
       />
+      {/* Menu Lateral Customizado */}
+      <Stack.Screen 
+        name="MenuScreen" 
+        component={MenuScreen} 
+        options={{ presentation: 'transparentModal', animation: 'fade' }}
+      />
+      <Stack.Screen name="Alerts" component={AlertsNavigator} />
+      <Stack.Screen name="Reports" component={ReportsNavigator} />
+      <Stack.Screen name="Profile" component={ProfileNavigator} />
     </Stack.Navigator>
   );
 };
