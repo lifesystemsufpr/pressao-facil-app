@@ -17,7 +17,7 @@ O app permite que o usuário registre suas medições de pressão arterial e fre
 
 ## Público-alvo
 
-O design prioriza legibilidade, alto contraste, tipografia acessível (Atkinson Hyperlegible) e elementos de toque generosos, voltados especialmente para o público idoso e pessoas com hipertensão que precisam de acompanhamento contínuo da própria saúde.
+O design prioriza legibilidade, alto contraste, tipografia acessível e elementos de toque generosos, voltados especialmente para o público idoso e pessoas com hipertensão que precisam de acompanhamento contínuo da própria saúde.
 
 ## Stack técnica
 
@@ -119,17 +119,222 @@ src/app/
 
 Cada pasta dentro de `features/` segue um conjunto padronizado de submódulos projetado para a arquitetura Offline-First.
 
-*   **`types/`**: Contém o **Modelo de Domínio Limpo**. Aqui você define as interfaces Typescript (ex: `Medicao`, `PerfilUsuario`). Como não há DTOs e Mappers, é exatamente este tipo que será processado e salvo no LocalStorage.
+*   **`types/`**: Contém o **Modelo de Domínio Limpo**. Aqui se define as interfaces Typescript (ex: `Medicao`, `PerfilUsuario`). Como não há DTOs e Mappers, é exatamente este tipo que será processado e salvo no LocalStorage.
 *   **`store/`**: Onde os dados ganham persistência e reatividade. Usando *Zustand* combinado ao *AsyncStorage*, a store mantém o estado local em memória e sincroniza a gravação para o disco do celular automaticamente.
 *   **`hooks/`**: Integra as regras da Store com a UI. Serve para facilitar abstrações (ex: `useDashboardSummary` pode ler dados da `medicoesStore` para calcular a média e devolver para a tela sem bloquear a renderização principal).
 *   **`services/`**: Lógicas de negócio mais pesadas que não têm relação com o React e não dependem do ciclo de vida de um componente (ex: cálculos estatísticos do histórico ou agendamento local de notificações).
 *   **`screens/` e `navigation/`**: Camada estrita de visualização. As telas (`Screens`) não gerenciam persistência nem tomam decisões de negócio, apenas injetam os Hooks/Stores e renderizam a UI. O `Navigator` interno orquestra os passos de telas que pertencem apenas àquela feature.
 *   **`index.ts`**: (Obrigatório) **A porta de entrada pública da feature**. Todo elemento que outra feature ou a infraestrutura global precisar acessar (como a `MeasurementsNavigator` sendo puxada pelo `MainTabNavigator`) precisa ser exportado explicitamente aqui. Importações passando pelo `index.ts` evitam o acoplamento excessivo.
 
-Aqui está o Markdown exato da seção que foi adicionada ao final do documento para você copiar:
-
-```markdown
 ---
+# Arquitetura de Navegação
+
+A navegação do **Pressão Fácil** foi desenhada para seguir o modelo do *React Navigation v7*, totalmente adaptada ao paradigma *Feature-Sliced Design*. Isso significa que as rotas globais não conhecem as telas diretamente, elas apenas orquestram os "Navigators" expostos por cada feature.
+
+---
+
+## 1. Visão Geral da Topologia (Árvore de Navegação)
+
+A estrutura de navegação do aplicativo é dividida em três níveis de profundidade: **Root**, **Tabs** e **Stacks das Features**.
+
+```mermaid
+graph TD
+    Root[Root Navigator] --> AuthStack[Auth Navigator]
+    Root --> MainTabs[Main Tab Navigator]
+    
+    AuthStack --> Login(LoginScreen)
+    AuthStack --> Cadastro(CadastroScreen)
+    AuthStack --> Esqueci(EsqueciSenhaScreen)
+
+    MainTabs --> TabHome(Aba Início)
+    MainTabs --> TabHistorico(Aba Histórico)
+    MainTabs --> TabNova(Aba Nova Medição)
+    MainTabs --> TabPerfil(Aba Perfil)
+
+    TabHome --> DashboardStack[Dashboard Navigator]
+    TabHistorico --> MeasurementListStack[Measurements Navigator]
+    TabNova --> MeasurementNewStack[Measurements Navigator]
+    TabPerfil --> ProfileStack[Profile Navigator]
+
+    DashboardStack --> Home(HomeScreen)
+    MeasurementListStack --> Historico(HistoricoMedicoesScreen)
+    MeasurementListStack --> Detalhes(DetalhesMedicaoScreen)
+    MeasurementNewStack --> NovaMedicao(NovaMedicaoScreen)
+    ProfileStack --> Perfil(PerfilScreen)
+```
+
+---
+
+## 2. Nível 1: `RootNavigator` (Orquestrador Global)
+Localizado em `src/app/navigation/RootNavigator.tsx`.
+
+O `RootNavigator` atua como um semáforo (Switch). Ele observa a *Store de Sessão* para decidir qual fluxo o usuário deve ver. Ele impede que um usuário deslogado acesse a aplicação, e que um usuário logado volte para a tela de login pelo botão "voltar" nativo.
+
+*   **Se `user == null`**: Monta o `AuthNavigator` (Fluxo Público).
+*   **Se `user != null`**: Monta o `MainTabNavigator` (Fluxo Autenticado).
+
+---
+
+## 3. Nível 2: `MainTabNavigator` (Orquestrador de Abas)
+Localizado em `src/app/navigation/MainTabNavigator.tsx`.
+
+É o roteador inferior do aplicativo (Bottom Tabs). Ele compõe a navegação primária inserindo os *Navigators* das features dentro das abas.
+
+1.  **Aba "Início"**: Renderiza o `DashboardNavigator` (vindo da feature `dashboard`).
+2.  **Aba "Histórico"**: Renderiza o `MeasurementsNavigator` configurado para abrir a rota `HistoricoMedicoesScreen`.
+3.  **Aba "Nova Medição"**: Renderiza o `MeasurementsNavigator` configurado para abrir diretamente a rota `NovaMedicaoScreen` (ou pode chamar um Modal global vindo da Tab).
+4.  **Aba "Perfil"**: Renderiza o `ProfileNavigator` (vindo da feature `profile`).
+
+---
+
+## 4. Nível 3: Navigators das Features
+Cada feature complexa (que possui mais de uma tela ou precisa encapsular cabeçalhos) gerencia sua própria pilha (Stack) de telas. Isso garante que a feature `auth`, por exemplo, decida sozinha como fluir da tela de Login para a de Cadastro.
+
+### 🔐 Feature: Auth (`AuthNavigator`)
+Responsável pelo onboarding e acesso do usuário.
+- `LoginScreen` (Rota inicial)
+- `CadastroScreen` (Acessado a partir do Login)
+- `EsqueciSenhaScreen` (Acessado a partir do Login)
+
+### 📊 Feature: Measurements (`MeasurementsNavigator`)
+Esta feature contém as telas cruciais da regra de negócio. O Navigator interno permite o livre trânsito entre as telas de pressão.
+- `HistoricoMedicoesScreen` (Lista de dados guardados)
+- `DetalhesMedicaoScreen` (Ao clicar em um item da lista)
+- `NovaMedicaoScreen` (O formulário de cadastro de pressão)
+
+### 🏠 Features de Tela Única (Dashboard, Profile, Alerts)
+Ainda que tenham apenas uma tela (`HomeScreen`, `PerfilScreen`), elas são envelopadas em um *Navigator* próprio (ex: `DashboardNavigator`). 
+**Por que?** Porque caso no futuro o *Dashboard* precise ter uma "Sub-tela de Notificações", o time adiciona essa rota dentro do `DashboardNavigator` e nada quebra no orquestrador global (Abas).
+
+---
+
+## 5. Como uma Feature navega para outra?
+
+De acordo com o *Feature-Sliced Design*, as telas de uma feature não importam telas de outra. 
+
+Se a `HomeScreen` (dashboard) precisa colocar um atalho para a tela de `Alertas`, como ela faz?
+A navegação global é gerenciada por rotas nomeadas estritas em `shared/types/navigation.ts`.
+
+A `HomeScreen` irá utilizar o `useNavigation` puxando o contrato global:
+```typescript
+navigation.navigate('AlertsStack', { screen: 'Alertas' });
+```
+# Arquitetura de Persistência (LocalStorage)
+
+Como o aplicativo **Pressão Fácil** é *Offline-First* (não consome uma API externa), toda a persistência de dados é feita localmente no dispositivo do usuário. Para garantir performance, escalabilidade e código limpo, adotamos a combinação de **Zustand** (gerenciamento de estado) com o **AsyncStorage** (banco de dados chave-valor do React Native).
+
+---
+
+## 1. Como Funciona o Fluxo de Dados?
+
+O grande diferencial dessa arquitetura é que **os componentes visuais (Telas) NUNCA interagem diretamente com o AsyncStorage**. O fluxo ocorre da seguinte forma:
+
+1. A **Tela (Screen)** chama uma função da **Store (Zustand)** (ex: `salvarMedicao()`).
+2. A **Store** atualiza o estado em *memória RAM* (para que a tela reaja e atualize instantaneamente, sem delay).
+3. Em *background*, o **Middleware Persist** do Zustand serializa (JSON) o novo estado e salva no **AsyncStorage** do celular.
+4. Quando o aplicativo é reaberto, o Zustand lê o AsyncStorage e carrega os dados de volta para a RAM (processo chamado de *Reidratação* ou *Hydration*).
+
+```mermaid
+sequenceDiagram
+    participant UI as Tela (Componente)
+    participant Store as Zustand (Memória)
+    participant Disk as AsyncStorage (Disco)
+
+    UI->>Store: addMedicao({ sistolica: 120, diastolica: 80 })
+    Store-->>UI: Estado atualizado (Tela re-renderiza)
+    Store->>Disk: JSON.stringify() + setItem() (Background)
+    
+    Note over UI,Disk: Ao fechar e abrir o App:
+    Disk->>Store: getItem() + JSON.parse() (Reidratação)
+```
+
+---
+
+## 2. Isolamento por Feature (Feature-Sliced Design)
+
+Em vez de ter um "banco de dados global" gigante e difícil de manter, o armazenamento é **fatiado por contexto de negócio**. Cada feature tem a sua própria *Store* e a sua própria chave no `AsyncStorage`.
+
+### 🗃️ `medicoesStore` (Feature: Measurements)
+*   **Chave no Disco**: `pressao-facil-storage-medicoes`
+*   **O que salva**: Array com o histórico completo de medições de pressão do usuário.
+*   **Comportamento**: Apenas adiciona e lista dados.
+
+### 👤 `authStore` / `sessionStore` (Feature: Auth / Infra: Shared)
+*   **Chave no Disco**: `pressao-facil-storage-sessao`
+*   **O que salva**: Tokens locais (se houver), status de "primeiro acesso" (para pular o Onboarding) e PIN biométrico.
+
+### ⚙️ `perfilStore` (Feature: Profile)
+*   **Chave no Disco**: `pressao-facil-storage-perfil`
+*   **O que salva**: Nome do usuário, idade, peso e contatos de emergência.
+
+---
+
+## 3. Exemplo Prático de Implementação (Template)
+
+Abaixo está o padrão arquitetural de como uma *Store* é criada no projeto (`src/app/features/measurements/store/medicoesStore.ts`):
+
+```typescript
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Medicao } from '../types';
+
+interface MedicoesState {
+  historico: Medicao[];
+  adicionarMedicao: (medicao: Medicao) => void;
+  limparHistorico: () => void;
+}
+
+export const useMedicoesStore = create<MedicoesState>()(
+  persist(
+    (set) => ({
+      historico: [],
+      
+      // Atualiza a memória. O 'persist' salva no disco automaticamente.
+      adicionarMedicao: (medicao) => 
+        set((state) => ({ historico: [medicao, ...state.historico] })),
+        
+      limparHistorico: () => set({ historico: [] }),
+    }),
+    {
+      name: 'pressao-facil-storage-medicoes', // Chave única no AsyncStorage
+      storage: createJSONStorage(() => AsyncStorage), 
+    }
+  )
+);
+```
+
+### Como a Tela consome essa Store?
+
+Na tela (`NovaMedicaoScreen.tsx`), o uso se torna extremamente limpo, sem `await` e sem lidar com conversões JSON:
+
+```tsx
+import { useMedicoesStore } from '../store/medicoesStore';
+
+export function NovaMedicaoScreen() {
+  const adicionar = useMedicoesStore((state) => state.adicionarMedicao);
+
+  const handleSalvar = () => {
+    adicionar({
+      id: Date.now().toString(),
+      sistolica: 120,
+      diastolica: 80,
+      data: new Date().toISOString()
+    });
+    // Voltar para a tela anterior...
+  };
+
+  return <Button onPress={handleSalvar}>Salvar Medição</Button>;
+}
+```
+
+---
+
+## 4. Cuidados e Boas Práticas Adotadas
+
+1. **Limite de Tamanho**: O `AsyncStorage` tem um limite teórico flexível, mas no Android geralmente gira em torno de 6MB a 50MB por padrão. Como estamos salvando apenas textos JSON (histórico de pressão e perfil), podemos guardar dezenas de milhares de registros sem estourar a memória.
+2. **Migrations (Versionamento)**: Se no futuro a estrutura de dados mudar (ex: adicionar campo "frequência cardíaca" no objeto de medição), o middleware `persist` do Zustand possui a propriedade `migrate` para atualizar automaticamente o JSON velho dos usuários antigos para o novo formato.
+3. **Hydration Warning**: Em algumas telas (como a Splash Screen), precisamos garantir que o Zustand já terminou de ler o disco (`_hasHydrated`) antes de redirecionar o usuário para a Home.
 
 ## Como Executar o Projeto
 
