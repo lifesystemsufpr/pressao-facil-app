@@ -13,7 +13,7 @@ export const MeasurementsNavigator = () => {
       <Stack.Screen
         name="HistoricoMedicoes"
         component={HistoricoMedicoesScreen}
-        options={{ title: 'Histórico' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="DetalhesMedicao"
