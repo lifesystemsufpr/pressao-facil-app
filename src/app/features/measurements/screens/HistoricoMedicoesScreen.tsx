@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { MeasurementsScreenProps } from '../../../shared/types/navigation';
 import { SearchBar, FilterChip } from '../../../shared/components';
 import { HamburgerMenuIcon } from '../../../shared/components/HamburgerMenuIcon';
@@ -88,7 +88,14 @@ export const HistoricoMedicoesScreen = ({ navigation }: MeasurementsScreenProps<
       <FlatList
         data={filteredData}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <BloodPressureCard measurement={item} />}
+        renderItem={({ item }) => (
+          <TouchableOpacity 
+            activeOpacity={0.8} 
+            onPress={() => navigation.navigate('DetalhesMedicao', { id: item.id })}
+          >
+            <BloodPressureCard measurement={item} />
+          </TouchableOpacity>
+        )}
         ListHeaderComponent={headerComponent}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}

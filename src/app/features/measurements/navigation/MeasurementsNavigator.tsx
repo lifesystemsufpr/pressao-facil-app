@@ -18,7 +18,7 @@ export const MeasurementsNavigator = () => {
       <Stack.Screen
         name="DetalhesMedicao"
         component={DetalhesMedicaoScreen}
-        options={{ title: 'Detalhes da Medição', headerLeft: undefined }}
+        options={{ headerShown: false }}
       />
       </Stack.Navigator>
   );
