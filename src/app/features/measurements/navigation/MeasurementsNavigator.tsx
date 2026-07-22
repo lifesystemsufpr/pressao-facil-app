@@ -10,16 +10,16 @@ const Stack = createNativeStackNavigator<MeasurementsStackParamList>();
 export const MeasurementsNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerRight: () => <HamburgerMenuIcon /> }}>
-      <Stack.Screen 
-        name="HistoricoMedicoes" 
-        component={HistoricoMedicoesScreen} 
-        options={{ title: 'Histórico' }} 
+      <Stack.Screen
+        name="HistoricoMedicoes"
+        component={HistoricoMedicoesScreen}
+        options={{ title: 'Histórico' }}
       />
-      <Stack.Screen 
-        name="DetalhesMedicao" 
-        component={DetalhesMedicaoScreen} 
-        options={{ title: 'Detalhes da Medição', headerLeft: undefined }} 
+      <Stack.Screen
+        name="DetalhesMedicao"
+        component={DetalhesMedicaoScreen}
+        options={{ title: 'Detalhes da Medição', headerLeft: undefined }}
       />
-    </Stack.Navigator>
+      </Stack.Navigator>
   );
 };

@@ -39,6 +39,7 @@ export type RootStackParamList = {
   Main: NavigatorScreenParams<MainTabParamList>;
   MenuScreen: undefined; // Menu lateral customizado
   NovaMedicaoModal: undefined; // Modal Global
+  InstrucaoModal: undefined; // Modal de Instrução
   Alerts: NavigatorScreenParams<AlertsStackParamList>;
   Reports: NavigatorScreenParams<ReportsStackParamList>;
   Profile: NavigatorScreenParams<ProfileStackParamList>;
@@ -58,5 +59,10 @@ export type MainTabScreenProps<T extends keyof MainTabParamList> = BottomTabScre
 
 export type MeasurementsScreenProps<T extends keyof MeasurementsStackParamList> = NativeStackScreenProps<
   MeasurementsStackParamList,
+  T
+>;
+
+export type InstrucaoModalScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<
+  RootStackParamList,
   T
 >;

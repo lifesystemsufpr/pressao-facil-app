@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../shared/types/navigation';
 
 import { MainTabNavigator } from './MainTabNavigator';
-import { NovaMedicaoScreen } from '../features/measurements';
+import { NovaMedicaoScreen, InstrucaoScreen } from '../features/measurements';
 import { AlertsNavigator } from '../features/alerts';
 import { ReportsNavigator } from '../features/reports';
 import { ProfileNavigator } from '../features/profile';
@@ -29,17 +29,23 @@ export const RootNavigator = () => {
         token ? <Stack.Screen name="Main" ... /> : <Stack.Screen name="Auth" ... />
       */}
       <Stack.Screen name="Main" component={MainTabNavigator} />
-      
+
       {/* Modal Global de Nova Medição */}
-      <Stack.Screen 
-        name="NovaMedicaoModal" 
-        component={NovaMedicaoScreen} 
+      <Stack.Screen
+        name="NovaMedicaoModal"
+        component={NovaMedicaoScreen}
         options={{ presentation: 'modal', headerShown: true, title: 'Nova Medição' }}
       />
+      {/* Modal de Instrução */}
+      <Stack.Screen
+        name="InstrucaoModal"
+        component={InstrucaoScreen}
+        options={{ presentation: 'modal', headerShown: true, title: 'Instruções de Uso' }}
+      />
       {/* Menu Lateral Customizado */}
-      <Stack.Screen 
-        name="MenuScreen" 
-        component={MenuScreen} 
+      <Stack.Screen
+        name="MenuScreen"
+        component={MenuScreen}
         options={{ presentation: 'transparentModal', animation: 'fade' }}
       />
       <Stack.Screen name="Alerts" component={AlertsNavigator} />

@@ -38,7 +38,7 @@ export const MainTabNavigator = () => {
             
             // Cast tipado seguro para alcançar a navegação raiz (RootStack)
             const rootNavigation = navigation as unknown as NavigationProp<RootStackParamList>;
-            rootNavigation.navigate('NovaMedicaoModal');
+            rootNavigation.navigate('InstrucaoModal');
           },
         })}
       />
