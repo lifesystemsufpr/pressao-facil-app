@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
     "@react-navigation/bottom-tabs": "^7.18.13",
     "@react-navigation/drawer": "^7.1.0",
     "@react-navigation/native": "^7.3.13",
@@ -11,13 +12,15 @@
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-native": "0.86.0",
+    "react-native-chart-kit": "^7.0.2",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "4.25.2"
+    "react-native-screens": "4.25.2",
+    "react-native-svg": "15.15.4"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3",
-    "babel-preset-expo": "*"
+    "babel-preset-expo": "*",
+    "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
