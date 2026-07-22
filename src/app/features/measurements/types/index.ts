@@ -1,1 +1,46 @@
 // Types da feature measurements
+//
+// Modelo de Domínio Limpo (Offline-First): esta interface é exatamente o que
+// é serializado e persistido no AsyncStorage pela store. Não há DTO nem Mapper.
+
+/**
+ * Contexto em que a medição foi realizada.
+ * Guardamos o valor "cru" (chave) para persistência estável; os rótulos
+ * legíveis ficam em {@link CONTEXTO_LABELS}.
+ */
+export type ContextoMedicao =
+  | 'antes_cafe'
+  | 'apos_atividade_fisica'
+  | 'apos_medicamento';
+
+/** Rótulos legíveis para exibição na UI (público idoso: texto claro e completo). */
+export const CONTEXTO_LABELS: Record<ContextoMedicao, string> = {
+  antes_cafe: 'Antes do café',
+  apos_atividade_fisica: 'Após atividade física',
+  apos_medicamento: 'Após medicamento',
+};
+
+/** Lista ordenada dos contextos, útil para seletores na UI. */
+export const CONTEXTOS_MEDICAO: ContextoMedicao[] = [
+  'antes_cafe',
+  'apos_atividade_fisica',
+  'apos_medicamento',
+];
+
+/**
+ * Uma medição de pressão arterial registrada pelo usuário.
+ */
+export interface Medicao {
+  /** Identificador único (ex.: `Date.now().toString()`). */
+  id: string;
+  /** Pressão sistólica em mmHg (o valor "maior"). */
+  sistolica: number;
+  /** Pressão diastólica em mmHg (o valor "menor"). */
+  diastolica: number;
+  /** Frequência cardíaca em batimentos por minuto (bpm). */
+  frequenciaCardiaca: number;
+  /** Data e hora da medição em ISO 8601 (ex.: `2026-07-22T08:30:00.000Z`). */
+  dataHora: string;
+  /** Contexto da medição. */
+  contexto: ContextoMedicao;
+}
