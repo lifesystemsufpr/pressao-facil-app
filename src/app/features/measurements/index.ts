@@ -1,7 +1,7 @@
 // Porta de entrada pública da feature `measurements`.
 // Outras features (ex.: reports) só podem importar daqui — nunca de caminhos internos.
 
-// Domínio e persistência (consumidos pela feature reports)
+// Domínio e estado em memória (consumidos pela feature reports)
 export * from './types';
 export * from './store';
 

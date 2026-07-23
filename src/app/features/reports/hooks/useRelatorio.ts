@@ -1,9 +1,10 @@
 // Hook que integra a store de medições com a UI de Relatórios.
 //
-// Papel de "cola": lê o histórico da store, delega a agregação ao serviço puro
-// e expõe para a tela um contrato simples { data, loading, erro }.
+// Papel de "cola": lê o histórico (mockado, em memória) da store, delega a
+// agregação ao serviço puro e expõe para a tela um contrato simples
+// { data, loading, erro }.
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMedicoesStore } from '../../measurements';
 import { buildRelatorio } from '../services';
 import type { PeriodoRelatorio, RelatorioData } from '../types';
@@ -11,7 +12,7 @@ import type { PeriodoRelatorio, RelatorioData } from '../types';
 export interface UseRelatorioResult {
   /** Dados agregados da prévia. `null` enquanto ainda carrega. */
   data: RelatorioData | null;
-  /** `true` enquanto o AsyncStorage não terminou de reidratar. */
+  /** `true` durante o carregamento inicial (dispara o skeleton). */
   loading: boolean;
   /** Mensagem de erro amigável, ou `null`. */
   erro: string | null;
@@ -24,10 +25,17 @@ export function useRelatorio(
   periodo: PeriodoRelatorio = '30dias'
 ): UseRelatorioResult {
   const historico = useMedicoesStore((s) => s.historico);
-  const hasHydrated = useMedicoesStore((s) => s._hasHydrated);
+
+  // Dados mockados (sem persistência nesta etapa). Simulamos um breve
+  // carregamento para exercitar o estado de "skeleton" exigido pela tela.
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(t);
+  }, []);
 
   return useMemo<UseRelatorioResult>(() => {
-    if (!hasHydrated) {
+    if (loading) {
       return { data: null, loading: true, erro: null };
     }
     try {
@@ -39,5 +47,5 @@ export function useRelatorio(
         erro: 'Não foi possível montar o relatório. Tente novamente.',
       };
     }
-  }, [historico, periodo, hasHydrated]);
+  }, [historico, periodo, loading]);
 }

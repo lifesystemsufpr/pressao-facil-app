@@ -1,7 +1,7 @@
 // Types da feature profile
 //
-// Modelo de Domínio Limpo (Offline-First): esta interface é exatamente o que
-// é serializado e persistido no AsyncStorage pela store.
+// Modelo de Domínio Limpo: interface consumida diretamente pela store (em
+// memória, mockada nesta etapa) e pelas telas.
 
 /** Tipos sanguíneos possíveis (sistema ABO + fator Rh). */
 export type TipoSanguineo = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';

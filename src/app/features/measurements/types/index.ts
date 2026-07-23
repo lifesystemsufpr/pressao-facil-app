@@ -1,12 +1,12 @@
 // Types da feature measurements
 //
-// Modelo de Domínio Limpo (Offline-First): esta interface é exatamente o que
-// é serializado e persistido no AsyncStorage pela store. Não há DTO nem Mapper.
+// Modelo de Domínio Limpo: interface consumida diretamente pela store (em
+// memória, mockada nesta etapa) e pelas telas. Não há DTO nem Mapper.
 
 /**
  * Contexto em que a medição foi realizada.
- * Guardamos o valor "cru" (chave) para persistência estável; os rótulos
- * legíveis ficam em {@link CONTEXTO_LABELS}.
+ * Guardamos o valor "cru" (chave) para estabilidade; os rótulos legíveis
+ * ficam em {@link CONTEXTO_LABELS}.
  */
 export type ContextoMedicao =
   | 'antes_cafe'
