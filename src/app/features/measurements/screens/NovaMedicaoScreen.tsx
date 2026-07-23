@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
-import { RootStackScreenProps } from '../../../shared/types/navigation';
+import { MeasurementsScreenProps, RootStackScreenProps } from '../../../shared/types/navigation';
 
-export const NovaMedicaoScreen = ({ navigation }: RootStackScreenProps<'NovaMedicaoModal'>) => {
+export const NovaMedicaoScreen = ({ route, navigation }: MeasurementsScreenProps<'NovaMedicao'>) => {
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Nova Medição</Text>
