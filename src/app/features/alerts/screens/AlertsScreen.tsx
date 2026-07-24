@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Switch } from 'react-native';
+import { AddAlertModal } from '../components/AddAlertModal';
 
 type AlertItem = {
     id: number;
@@ -15,6 +16,7 @@ export const AlertsScreen = () => {
 
     const [alerts, setAlerts] = useState(mockAlerts);
     //estado para utilizar a função handleToggleAlert de abilitar e desabilitar o alerta
+    const [isModalVisible, setIsModalVisible]=useState(false);
 
     const handleToggleAlert = (alertId: number) => {
         //função que abilita e desabilita o alerta
@@ -33,131 +35,128 @@ export const AlertsScreen = () => {
     };
 
     const handleAddReminder = () => {
-        navigation.navigate('./modalAddLembrete');
+        setIsModalVisible(true);
     };
     //abre o modal Add lembrete
 
     return (
         //container de scroll
-        <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.title}>
-                Meus Alertas
-            </Text>
+        <>
+            {/* //container de scroll */}
+            <ScrollView contentContainerStyle={styles.container}>
+                <Text style={styles.title}>
+                    Meus Alertas
+                </Text>
 
-            <Text style={styles.subtitle}>
-                Gerencie seus horários para suas medições diárias.
-            </Text>
+                <Text style={styles.subtitle}>
+                    Gerencie seus horários para suas medições diárias.
+                </Text>
 
-            <View style={styles.alertsContainer}>
-                {alerts.map((alert) => {
-                    //alerts veio do estado, alert foi criado pelo map para iteração
-                    //map varre os alertas e ve um alert por vez
-
-                    return (
-                        <View
-                            key={alert.id}
-                            //pegue cada item da lista e add o style
-                            style={[
-                                styles.alertCard,
-                                //crie um card no estilo padrao
-                                !alert.enabled && styles.disabledCard,
-                                //se desabilitado = aplique o estilo
-                                //se nao = nao aplique
-                            ]}
-                        >
-                            <View style={styles.cardHeader}>
-                                <View style={styles.alertInformation}>
-                                    <View style={styles.alertTitleContainer}>
-                                        <Ionicons
-                                            name={
-                                                alert.period === 'morning'
+                <View style={styles.alertsContainer}>
+                    {alerts.map((alert) => {
+                        //alerts veio do estado, alert foi criado pelo map para iteração
+                        //map varre os alertas e ve um alert por vez
+                        return (
+                            <View
+                                key={alert.id}
+                                //pegue cada item da lista e add o style
+                                style={[
+                                    styles.alertCard,
+                                    //crie um card no estilo padrao
+                                    !alert.enabled && styles.disabledCard,
+                                    //se desabilitado = aplique o estilo
+                                    //se nao = nao aplique
+                                ]}
+                            >
+                                <View style={styles.cardHeader}>
+                                    <View style={styles.alertInformation}>
+                                        <View style={styles.alertTitleContainer}>
+                                            <Ionicons
+                                                name={alert.period === 'morning'
                                                     //se for de manhã
                                                     ? 'sunny-outline'
                                                     //coloque o sol
                                                     : 'moon'
-                                                //se não, a lua
-                                            }
-                                            size={20}
-                                            color={
-                                                alert.enabled
+                                                    //se não, a lua
+                                                }
+                                                size={20}
+                                                color={alert.enabled
                                                     //se tiver abilitado
                                                     ? '#0068C9'
                                                     //deixe em azul
                                                     : '#818894'
-                                                //se não, em cinza
-                                            }
-                                        />
+                                                    //se não, em cinza
+                                                } />
 
+                                            <Text
+                                                style={[
+                                                    styles.alertTitle,
+                                                    !alert.enabled && styles.disabledText,
+                                                ]}
+                                            >
+                                                {alert.title}
+                                            </Text>
+                                        </View>
                                         <Text
                                             style={[
-                                                styles.alertTitle,
+                                                styles.alertTime,
+                                                //a hora que aparece no card
                                                 !alert.enabled && styles.disabledText,
                                             ]}
                                         >
-                                            {alert.title}
+                                            {alert.time}
                                         </Text>
                                     </View>
-                                    <Text
-                                        style={[
-                                            styles.alertTime,
-                                            //a hora que aparece no card
-                                            !alert.enabled && styles.disabledText,
-                                        ]}
-                                    >
-                                        {alert.time}
+                                    <Switch
+                                        //recebe do map se o alert da vez está abilitado ou não
+                                        value={alert.enabled}
+                                        //diz qual é o estado
+                                        onValueChange={() => handleToggleAlert(alert.id)
+                                            //quando clicar no botão de alerta do alerta de x id
+                                        }
+                                        trackColor={{
+                                            false: '#D1D5DB',
+                                            //se value=false desabilitado
+                                            true: '#0068C9',
+                                            //se value=true abilitado
+                                        }}
+                                        thumbColor="#FFFFFF" />
+                                </View>
+
+                                <View style={styles.frequencyBadge}>
+                                    <Ionicons
+                                        name="calendar-outline"
+                                        size={13}
+                                        color="#6B7280" />
+
+                                    <Text style={styles.frequencyText}>
+                                        Todos os dias
                                     </Text>
                                 </View>
-                                <Switch
-                                //recebe do map se o alert da vez está abilitado ou não
-                                    value={alert.enabled}
-                                    //diz qual é o estado
-                                    onValueChange={() =>
-                                        handleToggleAlert(alert.id)
-                                        //quando clicar no botão de alerta do alerta de x id
-                                    }
-                                    trackColor={{
-                                        false: '#D1D5DB',
-                                        //se value=false desabilitado
-                                        true: '#0068C9',
-                                        //se value=true abilitado
-                                    }}
-                                    thumbColor="#FFFFFF"
-                                />
                             </View>
+                        );
+                    })}
+                </View>
 
-                            <View style={styles.frequencyBadge}>
-                                <Ionicons
-                                    name="calendar-outline"
-                                    size={13}
-                                    color="#6B7280"
-                                />
+                <Pressable
+                    style={styles.button}
+                    onPress={handleAddReminder}>
 
-                                <Text style={styles.frequencyText}>
-                                    Todos os dias
-                                </Text>
-                            </View>
-                        </View>
-                    )
-                })}
-            </View>
+                    <Ionicons
+                        name="add"
+                        size={18}
+                        color="#FFFFFF" />
 
-            <Pressable
-                style={styles.button}
-                onPress={handleAddReminder}>
-                    
-                <Ionicons
-                    name="add"
-                    size={18}
-                    color="#FFFFFF"
-                />
-
-                <Text style={styles.buttonText}>
-                    Adicionar lembrete
-                </Text>
-            </Pressable>
-        </ScrollView>
-    );
-};
+                    <Text style={styles.buttonText}>
+                        Adicionar lembrete
+                    </Text>
+                </Pressable>
+            </ScrollView>
+            <AddAlertModal
+                visible={isModalVisible}
+                onClose={() => setIsModalVisible(false)} />
+            </>
+)};
 
 const mockAlerts: AlertItem[] = [
     {
