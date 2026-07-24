@@ -1,10 +1,8 @@
-// Store da feature profile (estado em memória)
+// Store da feature profile (estado em memória - Zustand removido)
 //
-// Nesta etapa NÃO há persistência (AsyncStorage/localStorage): a store apenas
-// mantém os dados mockados em memória via Zustand. A persistência será
-// adicionada numa etapa futura.
+// A store apenas retorna os dados mockados para que a interface continue
+// funcionando sem depender da biblioteca zustand.
 
-import { create } from 'zustand';
 import type { PerfilUsuario } from '../types';
 import { MOCK_PERFIL } from './mock';
 
@@ -13,7 +11,10 @@ interface PerfilState {
   atualizarPerfil: (perfil: PerfilUsuario) => void;
 }
 
-export const usePerfilStore = create<PerfilState>((set) => ({
-  perfil: MOCK_PERFIL,
-  atualizarPerfil: (perfil) => set({ perfil }),
-}));
+export const usePerfilStore = (selector?: (state: PerfilState) => any) => {
+  const state: PerfilState = {
+    perfil: MOCK_PERFIL,
+    atualizarPerfil: (perfil) => console.log('atualizarPerfil', perfil),
+  };
+  return selector ? selector(state) : state;
+};

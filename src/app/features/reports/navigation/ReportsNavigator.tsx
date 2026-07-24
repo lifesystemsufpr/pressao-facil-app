@@ -15,7 +15,7 @@ export const ReportsNavigator = () => {
       }}
     >
       <Stack.Screen 
-        name="Reports" 
+        name="ReportsScreenView" 
         component={ReportsScreen} 
         options={{ title: 'Relatórios' }} 
       />
