@@ -1,6 +1,7 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { PersonalData } from '../../features/onboarding/types/profile';
 
 export type DashboardStackParamList = {
   Home: undefined;
@@ -34,10 +35,13 @@ export type MainTabParamList = {
   MeasurementsTab: undefined;
   NewMeasurementTab: undefined; // Aba fake para disparar o Modal
   EvolutionTab: undefined;
+  ProfileTab: undefined;
 };
 
 export type RootStackParamList = {
-  Main: NavigatorScreenParams<MainTabParamList>;
+  Main: NavigatorScreenParams<MainTabParamList> | undefined;
+  PersonalData: undefined;
+  BodyMeasurements: { personalData: PersonalData };
   MenuScreen: undefined; // Menu lateral customizado
   NovaMedicaoModal: undefined; // Modal Global
   InstrucaoModal: undefined; // Modal de Instrução
