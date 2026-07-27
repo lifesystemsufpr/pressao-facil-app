@@ -10,8 +10,7 @@ export const EvolutionNavigator = () => {
   return (
     <Stack.Navigator 
       screenOptions={{ 
-        headerShown: true,
-        headerRight: () => <HamburgerMenuIcon />,
+        headerShown: false,
       }}
     >
       <Stack.Screen 

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
     "@react-navigation/bottom-tabs": "^7.18.13",
     "@react-navigation/drawer": "^7.1.0",
     "@react-navigation/native": "^7.3.13",
@@ -12,12 +13,11 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.0",
+    "react-native-chart-kit": "^7.0.2",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
     "react-native-web": "^0.21.2",
-    "react-native-chart-kit": "^6.12.0",
-    "react-native-svg": "15.2.0",
-    "@expo/vector-icons": "^14.0.0",
+    "react-native-svg": "^15.11.1",
     "buffer": "^6.0.3"
   },
   "devDependencies": {

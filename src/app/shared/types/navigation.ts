@@ -1,7 +1,7 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import type { DrawerScreenProps } from '@react-navigation/drawer';
+
 export type DashboardStackParamList = {
   Home: undefined;
 };
@@ -10,6 +10,7 @@ export type MeasurementsStackParamList = {
   HistoricoMedicoes: undefined;
   DetalhesMedicao: { id: string };
   NovaMedicao: undefined;
+  Instrucao: undefined;
 };
 
 export type EvolutionStackParamList = {
@@ -62,7 +63,7 @@ export type MeasurementsScreenProps<T extends keyof MeasurementsStackParamList> 
   T
 >;
 
-export type InstrucaoModalScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<
-  RootStackParamList,
+export type InstrucaoModalScreenProps<T extends keyof MeasurementsStackParamList> = NativeStackScreenProps<
+  MeasurementsStackParamList,
   T
 >;
