@@ -27,7 +27,7 @@ export type AlertsStackParamList = {
 };
 
 export type ReportsStackParamList = {
-  Reports: undefined;
+  ReportsScreenView: undefined;
 };
 
 export type MainTabParamList = {
