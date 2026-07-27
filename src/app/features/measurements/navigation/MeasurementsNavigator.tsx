@@ -4,6 +4,7 @@ import { MeasurementsStackParamList } from '../../../shared/types/navigation';
 import { HistoricoMedicoesScreen } from '../screens/HistoricoMedicoesScreen';
 import { DetalhesMedicaoScreen } from '../screens/DetalhesMedicaoScreen';
 import { HamburgerMenuIcon } from '../../../shared/components/HamburgerMenuIcon';
+import { NovaMedicaoScreen } from '../screens/NovaMedicaoScreen';
 
 const Stack = createNativeStackNavigator<MeasurementsStackParamList>();
 
@@ -18,6 +19,11 @@ export const MeasurementsNavigator = () => {
       <Stack.Screen
         name="DetalhesMedicao"
         component={DetalhesMedicaoScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="NovaMedicao"
+        component={NovaMedicaoScreen}
         options={{ headerShown: false }}
       />
       </Stack.Navigator>

@@ -373,3 +373,5 @@ Ao rodar `npm start`, um QR Code aparecerá no terminal.
     *   *Dica: Caso o emulador informe incompatibilidade de versão, feche o emulador, aperte `Shift + U` no terminal para atualizar o Expo Go no dispositivo virtual, e depois `a` novamente.*
 *   **Simulador iOS (apenas Mac):** Com o Xcode instalado, pressione a tecla **`i`** no terminal.
 *   **Versão Web (Preview local):** Pressione a tecla **`w`** no terminal para testar o aplicativo diretamente no navegador de internet.
+
+## Link Figma https://www.figma.com/design/KiYIvVWapOj4sQIz4MkmH8/Tecnoaging-Mobile?node-id=3020-1011&t=XlUNwrpNS40yXyOZ-1
