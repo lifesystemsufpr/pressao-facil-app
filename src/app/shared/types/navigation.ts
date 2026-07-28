@@ -41,6 +41,7 @@ export type RootStackParamList = {
   Main: NavigatorScreenParams<MainTabParamList> | undefined;
   PersonalData: undefined;
   BodyMeasurements: { personalData: PersonalData };
+  ClinicalData: { personalData: PersonalData; weightKg: number; heightCm: number };
   MenuScreen: undefined; // Menu lateral customizado
   NovaMedicaoModal: undefined; // Modal Global
   InstrucaoModal: undefined; // Modal de Instrução

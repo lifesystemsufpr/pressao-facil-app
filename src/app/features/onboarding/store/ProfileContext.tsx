@@ -1,8 +1,8 @@
 import React, { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
-import { LocalUserProfile, PersonalData } from '../types/profile';
+import { ClinicalData, LocalUserProfile, PersonalData } from '../types/profile';
 import { profileStorage } from '../services/profileStorage';
 
-type CompleteProfileData = PersonalData & { weightKg: number; heightCm: number };
+type CompleteProfileData = PersonalData & ClinicalData & { weightKg: number; heightCm: number };
 type ProfileContextValue = {
   profile: LocalUserProfile | null;
   isLoading: boolean;
@@ -19,17 +19,13 @@ export const ProfileProvider = ({ children }: PropsWithChildren) => {
     let active = true;
     const startedAt = Date.now();
 
-    profileStorage.get().then((storedProfile) => {
-      const remaining = Math.max(0, 1200 - (Date.now() - startedAt));
-      setTimeout(() => {
-        if (active) {
-          setProfile(storedProfile);
-          setIsLoading(false);
-        }
-      }, remaining);
-    }).catch(() => {
-      if (active) setIsLoading(false);
-    });
+    const remaining = Math.max(0, 1200 - (Date.now() - startedAt));
+    setTimeout(() => {
+      if (active) {
+        setProfile(null); // Sempre inicia como null para forçar o cadastro
+        setIsLoading(false);
+      }
+    }, remaining);
 
     return () => { active = false; };
   }, []);
@@ -43,7 +39,7 @@ export const ProfileProvider = ({ children }: PropsWithChildren) => {
       createdAt: now,
       updatedAt: now,
     };
-    await profileStorage.save(newProfile);
+    // await profileStorage.save(newProfile); // Persistência desabilitada nesta etapa
     setProfile(newProfile);
   };
 

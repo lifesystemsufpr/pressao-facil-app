@@ -19,7 +19,7 @@ export const BodyMeasurementsScreen = ({ navigation, route }: Props) => {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const completeRegistration = async () => {
+  const continueRegistration = () => {
     const weightKg = Number(weight.replace(',', '.'));
     const heightCm = Number(height.replace(/\D/g, ''));
     if (!Number.isFinite(weightKg) || weightKg < 20 || weightKg > 400)
@@ -27,16 +27,12 @@ export const BodyMeasurementsScreen = ({ navigation, route }: Props) => {
     if (!Number.isFinite(heightCm) || heightCm < 80 || heightCm > 250)
       return setError('Informe uma altura entre 80 e 250 cm.');
 
-    try {
-      setSaving(true);
-      setError('');
-      await saveProfile({ ...route.params.personalData, weightKg, heightCm });
-      navigation.popToTop();
-    } catch {
-      Alert.alert('Não foi possível salvar', 'Tente concluir o cadastro novamente.');
-    } finally {
-      setSaving(false);
-    }
+    setError('');
+    navigation.navigate('ClinicalData', {
+      personalData: route.params.personalData,
+      weightKg,
+      heightCm,
+    });
   };
 
   return (
@@ -77,9 +73,9 @@ export const BodyMeasurementsScreen = ({ navigation, route }: Props) => {
             <Text style={styles.infoText}>Esses dados são privados e usados apenas para personalizar sua experiência de acompanhamento.</Text>
           </View>
           {!!error && <Text style={styles.error}>{error}</Text>}
-          <TouchableOpacity style={[styles.button, saving && styles.disabled]} onPress={completeRegistration} disabled={saving}>
-            <Text style={styles.buttonText}>{saving ? 'Salvando...' : 'Concluir cadastro'}</Text>
-            {!saving && <Ionicons name="checkmark-circle-outline" size={23} color="#FFFFFF" />}
+          <TouchableOpacity style={styles.button} onPress={continueRegistration}>
+            <Text style={styles.buttonText}>Próximo passo</Text>
+            <Ionicons name="arrow-forward" size={23} color="#FFFFFF" />
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

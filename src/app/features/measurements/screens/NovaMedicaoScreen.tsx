@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, TextInput, Alert } from 'react-native';
-import { RootStackScreenProps } from '../../../shared/types/navigation';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 type MeasurementContext = {
@@ -9,7 +9,8 @@ type MeasurementContext = {
     selected: boolean;
 };
 
-export const NovaMedicaoScreen = ({ navigation }: RootStackScreenProps<'NovaMedicaoModal'>) => {
+export const NovaMedicaoScreen = () => {
+    const navigation = useNavigation();
     const [measurementContexts, setMeasurementContexts] = useState(
         mockMeasurementContexts
     );
@@ -77,7 +78,7 @@ export const NovaMedicaoScreen = ({ navigation }: RootStackScreenProps<'NovaMedi
                     text: "Salvar", 
                     onPress: () => {
                         // Redireciona para a tela de resultados global 
-                        navigation.navigate('ResultadosMedicaoModal', { id: '1' });
+                        (navigation as any).navigate('ResultadosMedicaoModal', { id: '1' });
                     }
                 }
             ]

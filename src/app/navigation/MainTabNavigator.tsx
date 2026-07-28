@@ -28,7 +28,7 @@ export const MainTabNavigator = () => (
     },
   })}>
     <Tab.Screen name="DashboardTab" component={DashboardNavigator} options={{ title: 'Início' }} />
-    <Tab.Screen name="MeasurementsTab" component={MeasurementsNavigator} options={{ title: 'Histórico', unmountOnBlur: true }} />
+    <Tab.Screen name="MeasurementsTab" component={MeasurementsNavigator} options={{ title: 'Histórico', popToTopOnBlur: true }} />
     <Tab.Screen name="NewMeasurementTab" component={EmptyScreen} options={{ title: 'Nova medição' }}
       listeners={({ navigation }) => ({
         tabPress: (event) => {

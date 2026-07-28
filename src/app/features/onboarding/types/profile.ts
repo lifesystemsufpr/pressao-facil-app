@@ -1,14 +1,20 @@
 export type Gender = 'male' | 'female' | 'other';
-export type BloodType = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
-
 export type PersonalData = {
   fullName: string;
   birthDate: string;
   gender: Gender;
-  bloodType: BloodType;
 };
 
-export type LocalUserProfile = PersonalData & {
+export type ClinicalData = {
+  usesBloodPressureMeds: boolean;
+  bloodPressureMedsName?: string;
+  familyHistoryHypertension: boolean;
+  hasChronicDisease: boolean;
+  chronicDiseaseName?: string;
+  smokerOrLivesWithSmoker: boolean;
+};
+
+export type LocalUserProfile = PersonalData & ClinicalData & {
   version: 1;
   id: string;
   weightKg: number;

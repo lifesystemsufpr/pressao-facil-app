@@ -7,8 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { usePerfil } from '../hooks';
-import type { PerfilUsuario } from '../types';
+import { useProfile, LocalUserProfile } from '../../onboarding';
 
 // Mesma paleta de alto contraste usada na tela de Relatórios, para manter
 // consistência visual entre as telas do app.
@@ -22,25 +21,38 @@ const COLORS = {
   danger: '#C0392B',
 };
 
-export const PerfilScreen = () => {
-  const { perfil, loading } = usePerfil();
+const calcularIdade = (dataNascimento: string) => {
+  const [dia, mes, ano] = dataNascimento.split('/').map(Number);
+  const dataNasc = new Date(ano, mes - 1, dia);
+  const hoje = new Date();
+  let idade = hoje.getFullYear() - dataNasc.getFullYear();
+  const mesAtual = hoje.getMonth();
+  const diaAtual = hoje.getDate();
+  if (mesAtual < mes - 1 || (mesAtual === mes - 1 && diaAtual < dia)) {
+    idade--;
+  }
+  return idade;
+};
 
-  if (loading) {
+export const PerfilScreen = () => {
+  const { profile, isLoading } = useProfile();
+
+  if (isLoading) {
     return <PerfilSkeleton />;
   }
 
-  if (!perfil) {
+  if (!profile) {
     return <PerfilSemDados />;
   }
 
-  return <PerfilComDados perfil={perfil} />;
+  return <PerfilComDados perfil={profile} />;
 };
 
 // ---------------------------------------------------------------------------
 // Estado: COM DADOS
 // ---------------------------------------------------------------------------
 
-const PerfilComDados = ({ perfil }: { perfil: PerfilUsuario }) => {
+const PerfilComDados = ({ perfil }: { perfil: LocalUserProfile }) => {
   const handleExportarDados = () => {
     Alert.alert(
       'Exportar Dados (PDF)',
@@ -52,10 +64,13 @@ const PerfilComDados = ({ perfil }: { perfil: PerfilUsuario }) => {
     Alert.alert(
       'Sobre o Pressão Fácil',
       'Pressão Fácil é um aplicativo mobile de monitoramento de pressão ' +
-        'arterial, feito para tornar o acompanhamento da saúde cardiovascular ' +
-        'simples, acessível e tranquilizador.\n\nVersão 1.0.0'
+      'arterial, feito para tornar o acompanhamento da saúde cardiovascular ' +
+      'simples, acessível e tranquilizador.\n\nVersão 1.0.0'
     );
   };
+
+  const idade = calcularIdade(perfil.birthDate);
+  const genero = perfil.gender === 'male' ? 'Masculino' : perfil.gender === 'female' ? 'Feminino' : 'Outro';
 
   return (
     <ScrollView
@@ -63,37 +78,37 @@ const PerfilComDados = ({ perfil }: { perfil: PerfilUsuario }) => {
       contentContainerStyle={styles.content}
       accessibilityLabel="Tela de perfil"
     >
-      <View style={styles.header}>
-        <Text style={styles.title} accessibilityRole="header">
-          Perfil
-        </Text>
-        <Text style={styles.subtitle}>
-          Mantenha seus dados sempre atualizados.
-        </Text>
-      </View>
 
       <View
         style={styles.card}
         accessible
         accessibilityLabel={
-          `${perfil.nome}, ${perfil.idade} anos, tipo sanguíneo ${perfil.tipoSanguineo}. ` +
-          `Peso ${perfil.pesoKg} quilos, altura ${perfil.alturaM} metros.`
+          `${perfil.fullName}, ${idade} anos, gênero ${genero}. ` +
+          `Peso ${perfil.weightKg} quilos, altura ${perfil.heightCm / 100} metros.`
         }
       >
-        <Text style={styles.nome}>{perfil.nome}</Text>
+        <Text style={styles.nome}>{perfil.fullName}</Text>
 
         <View style={styles.statsRow}>
-          <StatBox rotulo="Idade" valor={`${perfil.idade}`} unidade="anos" />
+          <StatBox rotulo="Idade" valor={`${idade}`} unidade="anos" />
           <StatBox
-            rotulo="Tipo Sanguíneo"
-            valor={perfil.tipoSanguineo}
-            valorCor={COLORS.danger}
+            rotulo="Gênero"
+            valor={genero}
           />
         </View>
         <View style={styles.statsRow}>
-          <StatBox rotulo="Peso" valor={`${perfil.pesoKg}`} unidade="kg" />
-          <StatBox rotulo="Altura" valor={`${perfil.alturaM}`} unidade="m" />
+          <StatBox rotulo="Peso" valor={`${perfil.weightKg}`} unidade="kg" />
+          <StatBox rotulo="Altura" valor={`${(perfil.heightCm / 100).toFixed(2)}`} unidade="m" />
         </View>
+      </View>
+
+      <Text style={styles.sectionTitle}>Dados Clínicos</Text>
+      <View style={styles.divider} />
+      <View style={styles.cardInfo}>
+        <ItemInfo rotulo="Medicamento para pressão" valor={perfil.usesBloodPressureMeds ? `Sim (${perfil.bloodPressureMedsName})` : 'Não'} />
+        <ItemInfo rotulo="Histórico de hipertensão na família" valor={perfil.familyHistoryHypertension ? 'Sim' : 'Não'} />
+        <ItemInfo rotulo="Doença crônica" valor={perfil.hasChronicDisease ? `Sim (${perfil.chronicDiseaseName})` : 'Não'} />
+        <ItemInfo rotulo="Fumante (ou convive)" valor={perfil.smokerOrLivesWithSmoker ? 'Sim' : 'Não'} />
       </View>
 
       <Text style={styles.sectionTitle}>Configurações</Text>
@@ -132,6 +147,13 @@ const StatBox = ({
       {valor}
       {unidade ? <Text style={styles.statUnidade}> {unidade}</Text> : null}
     </Text>
+  </View>
+);
+
+const ItemInfo = ({ rotulo, valor }: { rotulo: string; valor: string }) => (
+  <View style={styles.infoRow}>
+    <Text style={styles.infoRotulo}>{rotulo}</Text>
+    <Text style={styles.infoValor}>{valor}</Text>
   </View>
 );
 
@@ -249,6 +271,19 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
+  cardInfo: {
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: 20,
+    marginBottom: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
   nome: {
     fontSize: 22,
     fontWeight: '700',
@@ -276,7 +311,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   statValor: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: COLORS.primary,
   },
@@ -284,6 +319,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '400',
     color: COLORS.textMuted,
+  },
+
+  // Info Items
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  infoRotulo: {
+    fontSize: 15,
+    color: COLORS.textMuted,
+    flex: 1,
+  },
+  infoValor: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.textStrong,
+    textAlign: 'right',
+    flex: 1,
   },
 
   // Configurações

@@ -7,17 +7,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../../shared/types/navigation';
-import { BloodType, Gender } from '../types/profile';
+import { Gender } from '../types/profile';
 import { OnboardingHeader } from '../components/OnboardingHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PersonalData'>;
-const bloodTypes: BloodType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 export const PersonalDataScreen = ({ navigation }: Props) => {
   const [fullName, setFullName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [gender, setGender] = useState<Gender | null>(null);
-  const [bloodType, setBloodType] = useState<BloodType | null>(null);
   const [error, setError] = useState('');
 
   const formatDate = (value: string) => {
@@ -39,11 +37,11 @@ export const PersonalDataScreen = ({ navigation }: Props) => {
   const continueRegistration = () => {
     if (fullName.trim().length < 3) return setError('Informe seu nome completo.');
     if (!isValidDate()) return setError('Informe uma data de nascimento válida.');
-    if (!gender || !bloodType) return setError('Selecione seu gênero e tipo sanguíneo.');
+    if (!gender) return setError('Selecione seu gênero.');
 
     setError('');
     navigation.navigate('BodyMeasurements', {
-      personalData: { fullName: fullName.trim(), birthDate, gender, bloodType },
+      personalData: { fullName: fullName.trim(), birthDate, gender },
     });
   };
 
@@ -69,7 +67,7 @@ export const PersonalDataScreen = ({ navigation }: Props) => {
           <Text style={styles.label}>Gênero</Text>
           <View style={styles.chipRow}>
             {([
-              ['male', '♂ Masculino'], ['female', '♀ Feminino'], ['other', 'Outro'],
+              ['male', '♂ Masculino'], ['female', '♀ Feminino'],
             ] as const).map(([value, label]) => (
               <TouchableOpacity key={value} onPress={() => setGender(value)}
                 style={[styles.chip, gender === value && styles.selectedChip]}>
@@ -78,20 +76,6 @@ export const PersonalDataScreen = ({ navigation }: Props) => {
             ))}
           </View>
 
-          <Text style={styles.label}>Tipo sanguíneo</Text>
-          <View style={styles.bloodGrid}>
-            {bloodTypes.map((type) => (
-              <TouchableOpacity key={type} onPress={() => setBloodType(type)}
-                style={[styles.bloodChip, bloodType === type && styles.selectedChip]}>
-                <Text style={[styles.bloodText, bloodType === type && styles.selectedText]}>{type}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <View style={styles.illustration}>
-            <Ionicons name="medical-outline" size={72} color="#75B9E5" />
-            <Text style={styles.illustrationText}>Seu cuidado começa aqui</Text>
-          </View>
           {!!error && <Text style={styles.error}>{error}</Text>}
           <TouchableOpacity style={styles.primaryButton} onPress={continueRegistration}>
             <Text style={styles.primaryButtonText}>Próximo passo</Text>
@@ -124,9 +108,6 @@ const styles = StyleSheet.create({
   bloodChip: { width: '22.5%', height: 56, borderWidth: 1, borderColor: '#C7CEDD', borderRadius: 11,
     alignItems: 'center', justifyContent: 'center' },
   bloodText: { color: '#4A4F5C', fontSize: 23, fontWeight: '600' },
-  illustration: { height: 150, marginTop: 40, borderRadius: 24, backgroundColor: '#E2EFF6',
-    alignItems: 'center', justifyContent: 'center' },
-  illustrationText: { color: '#3B6580', fontSize: 14, marginTop: 6, fontWeight: '600' },
   error: { color: '#B42318', marginTop: 14, textAlign: 'center', fontWeight: '600' },
   primaryButton: { height: 56, borderRadius: 28, marginTop: 20, backgroundColor: '#0567B8',
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14 },

@@ -9,7 +9,7 @@ import { ReportsNavigator } from '../features/reports';
 import { ProfileNavigator } from '../features/profile';
 import { MenuScreen } from '../shared/components/MenuScreen';
 import {
-  BodyMeasurementsScreen, PersonalDataScreen, SplashScreen, useProfile,
+  BodyMeasurementsScreen, PersonalDataScreen, ClinicalDataScreen, SplashScreen, useProfile,
 } from '../features/onboarding';
 import { Feather } from '@expo/vector-icons';
 
@@ -24,6 +24,7 @@ export const RootNavigator = () => {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="PersonalData" component={PersonalDataScreen} />
         <Stack.Screen name="BodyMeasurements" component={BodyMeasurementsScreen} />
+        <Stack.Screen name="ClinicalData" component={ClinicalDataScreen} />
       </Stack.Navigator>
     );
   }

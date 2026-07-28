@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export const OnboardingHeader = ({ step, onBack }: { step: 1 | 2; onBack?: () => void }) => (
+export const OnboardingHeader = ({ step, onBack }: { step: 1 | 2 | 3; onBack?: () => void }) => (
   <>
     <View style={styles.header}>
       {onBack ? (
@@ -14,11 +14,11 @@ export const OnboardingHeader = ({ step, onBack }: { step: 1 | 2; onBack?: () =>
       <View style={styles.back} />
     </View>
     <View style={styles.labels}>
-      <Text style={styles.step}>Passo {step} de 2</Text>
-      <Text style={styles.progressText}>{step === 1 ? 'Perfil pessoal' : 'Quase lá'}</Text>
+      <Text style={styles.step}>Passo {step} de 3</Text>
+      <Text style={styles.progressText}>{step === 1 ? 'Perfil pessoal' : step === 2 ? 'Medidas' : 'Dados clínicos'}</Text>
     </View>
     <View style={styles.track}>
-      <View style={[styles.fill, { width: step === 1 ? '50%' : '100%' }]} />
+      <View style={[styles.fill, { width: step === 1 ? '33%' : step === 2 ? '66%' : '100%' }]} />
     </View>
   </>
 );
