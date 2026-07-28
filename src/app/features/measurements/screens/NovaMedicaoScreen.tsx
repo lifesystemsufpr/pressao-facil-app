@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, TextInput, Alert } from 'react-native';
 import { RootStackScreenProps } from '../../../shared/types/navigation';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -14,11 +14,26 @@ export const NovaMedicaoScreen = ({ navigation }: RootStackScreenProps<'NovaMedi
         mockMeasurementContexts
     );
     //estado que começa com o array de mock
-    const [systolic, setSystolic] = useState('120');
-    const [diastolic, setDiastolic] = useState('80');
-    const [heartRate, setHeartRate] = useState('70');
-    const [date, setDate] = useState('23/07/2026');
-    const [hour, setHour] = useState('08:30');
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const currentDate = `${day}/${month}/${year}`;
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const currentHour = `${h}:${m}`;
+
+    const [systolic, setSystolic] = useState('');
+    const [diastolic, setDiastolic] = useState('');
+    const [heartRate, setHeartRate] = useState('');
+    const [date, setDate] = useState(currentDate);
+    const [hour, setHour] = useState(currentHour);
+
+    const handleSetSystolic = (text: string) => setSystolic(text.replace(/[^0-9]/g, ''));
+    const handleSetDiastolic = (text: string) => setDiastolic(text.replace(/[^0-9]/g, ''));
+    const handleSetHeartRate = (text: string) => setHeartRate(text.replace(/[^0-9]/g, ''));
+    const handleSetDate = (text: string) => setDate(text.replace(/[^0-9/]/g, ''));
+    const handleSetHour = (text: string) => setHour(text.replace(/[^0-9:]/g, ''));
 
     const handleToggleContext = (contextId: number) => {
         //uso o handle quando preciso aplicar alguma lógica, mascara etc
@@ -41,6 +56,34 @@ export const NovaMedicaoScreen = ({ navigation }: RootStackScreenProps<'NovaMedi
             )
         );
     };
+    const handleSave = () => {
+        if (!systolic.trim() || !diastolic.trim() || !heartRate.trim() || !date.trim() || !hour.trim()) {
+            Alert.alert(
+                "Campos Obrigatórios",
+                "Por favor, preencha todos os dados da medição antes de salvar."
+            );
+            return;
+        }
+
+        Alert.alert(
+            "Salvar Medição",
+            "Confirma que deseja salvar os dados desta medição?",
+            [
+                {
+                    text: "Cancelar",
+                    style: "cancel"
+                },
+                { 
+                    text: "Salvar", 
+                    onPress: () => {
+                        // Redireciona para a tela de resultados global 
+                        navigation.navigate('ResultadosMedicaoModal', { id: '1' });
+                    }
+                }
+            ]
+        );
+    };
+
     return (
 
         <ScrollView
@@ -58,10 +101,12 @@ export const NovaMedicaoScreen = ({ navigation }: RootStackScreenProps<'NovaMedi
                     <TextInput
                         style={styles.measurementInput}
                         value={systolic}
-                        onChangeText={setSystolic}
+                        onChangeText={handleSetSystolic}
                         keyboardType="numeric"
                         maxLength={3}
                         selectTextOnFocus
+                        placeholder="--"
+                        placeholderTextColor="#C4CAD4"
                     />
                     <Text style={styles.measurementUnit}>
                         mmHg
@@ -75,10 +120,12 @@ export const NovaMedicaoScreen = ({ navigation }: RootStackScreenProps<'NovaMedi
                     <TextInput
                         style={styles.measurementInput}
                         value={diastolic}
-                        onChangeText={setDiastolic}
+                        onChangeText={handleSetDiastolic}
                         keyboardType="numeric"
                         maxLength={3}
                         selectTextOnFocus
+                        placeholder="--"
+                        placeholderTextColor="#C4CAD4"
                     />
                     <Text style={styles.measurementUnit}>
                         mmHg
@@ -102,10 +149,12 @@ export const NovaMedicaoScreen = ({ navigation }: RootStackScreenProps<'NovaMedi
                 <TextInput
                         style={styles.measurementInput}
                         value={heartRate}
-                        onChangeText={setHeartRate}
+                        onChangeText={handleSetHeartRate}
                         keyboardType="numeric"
                         maxLength={3}
                         selectTextOnFocus
+                        placeholder="--"
+                        placeholderTextColor="#C4CAD4"
                 />
 
                 <Text style={styles.measurementUnit}>
@@ -124,7 +173,7 @@ export const NovaMedicaoScreen = ({ navigation }: RootStackScreenProps<'NovaMedi
                         <TextInput
                         style={styles.fieldText}
                         value={date}
-                        onChangeText={setDate}
+                        onChangeText={handleSetDate}
                         keyboardType="numeric"
                         maxLength={10}
                         selectTextOnFocus
@@ -141,7 +190,7 @@ export const NovaMedicaoScreen = ({ navigation }: RootStackScreenProps<'NovaMedi
                         <TextInput
                         style={styles.fieldText}
                         value={hour}
-                        onChangeText={setHour}
+                        onChangeText={handleSetHour}
                         keyboardType="numeric"
                         maxLength={9}
                         selectTextOnFocus
@@ -182,7 +231,7 @@ export const NovaMedicaoScreen = ({ navigation }: RootStackScreenProps<'NovaMedi
                 />
             </View>
 
-            <Pressable style={styles.saveButton}>
+            <Pressable style={styles.saveButton} onPress={handleSave}>
                 <Ionicons name="save-outline" size={16} color='#FFFFFF'/>
                 <Text style={styles.saveButtonText}>
                     Salvar medição
@@ -201,8 +250,7 @@ const mockMeasurementContexts: MeasurementContext[] = [
     {
         id: 2,
         label: 'Após atividade física',
-        
-        selected: true,
+        selected: false,
     },
     {
         id: 3,

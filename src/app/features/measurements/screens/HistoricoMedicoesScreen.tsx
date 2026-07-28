@@ -14,7 +14,7 @@ const mockData: BloodPressureMeasurement[] = [
 ];
 
 export const HistoricoMedicoesScreen = ({ navigation }: MeasurementsScreenProps<'HistoricoMedicoes'>) => {
-  const [activeFilter, setActiveFilter] = useState('Hoje');
+  const [activeFilter, setActiveFilter] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearchChange = (text: string) => {

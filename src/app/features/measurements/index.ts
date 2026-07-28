@@ -9,3 +9,4 @@ export * from './store';
 export * from './navigation/MeasurementsNavigator';
 export * from './screens/NovaMedicaoScreen';
 export * from './screens/InstrucaoScreen';
+export * from './screens/ResultadosMedicaoScreen';

@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
-import { MeasurementsScreenProps } from '../../../shared/types/navigation';
-import { PrimaryButton, SecondaryButton, DangerButton } from '../../../shared/components/Button';
+import { View, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Text } from 'react-native';
+import { RootStackScreenProps } from '../../../shared/types/navigation';
+import { PrimaryButton, SecondaryButton } from '../../../shared/components/Button';
 import { AlertCard } from '../components/AlertCard';
 import { BloodPressureDetailCard } from '../components/BloodPressureDetailCard';
 import { InfoCard } from '../components/InfoCard';
@@ -9,9 +9,8 @@ import { ObservationCard } from '../components/ObservationCard';
 import { ContextCard } from '../components/ContextCard';
 import { HamburgerMenuIcon } from '../../../shared/components/HamburgerMenuIcon';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity, Text } from 'react-native';
 
-export const DetalhesMedicaoScreen = ({ route, navigation }: MeasurementsScreenProps<'DetalhesMedicao'>) => {
+export const ResultadosMedicaoScreen = ({ route, navigation }: RootStackScreenProps<'ResultadosMedicaoModal'>) => {
   const { id } = route.params;
 
   // Mock data match
@@ -50,14 +49,18 @@ export const DetalhesMedicaoScreen = ({ route, navigation }: MeasurementsScreenP
     };
   }
 
+  const handleGoBack = () => {
+    navigation.navigate('Main' as any);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerContainer}>
         <View style={styles.titleRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#111111" />
           </TouchableOpacity>
-          <Text style={styles.title}>Detalhes da Medição</Text>
+          <Text style={styles.title}>Resultados da Medição</Text>
           <HamburgerMenuIcon />
         </View>
       </View>
@@ -93,7 +96,7 @@ export const DetalhesMedicaoScreen = ({ route, navigation }: MeasurementsScreenP
           <PrimaryButton 
             title="Voltar" 
             iconName="arrow-back" 
-            onPress={() => navigation.goBack()} 
+            onPress={handleGoBack} 
             style={styles.actionButton} 
           />
           <SecondaryButton 

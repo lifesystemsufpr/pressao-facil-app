@@ -11,28 +11,18 @@ interface InfoCardProps {
   valueFontSize?: number;
 }
 
-export const InfoCard = ({
-  iconName,
-  title,
-  value,
-  unit,
-  subValue,
-  valueFontSize = 30,
-}: InfoCardProps) => {
+export const InfoCard = ({ iconName, title, value, unit, subValue, valueFontSize = 28 }: InfoCardProps) => {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Ionicons name={iconName} size={16} color="#5AAEFF" />
+        <Ionicons name={iconName} size={20} color="#0068C9" style={styles.icon} />
         <Text style={styles.title}>{title}</Text>
       </View>
-      
-      <View style={styles.content}>
-        <View style={styles.valueRow}>
-          <Text style={[styles.value, { fontSize: valueFontSize }]}>{value}</Text>
-          {unit && <Text style={styles.unit}>{unit}</Text>}
-        </View>
-        {subValue && <Text style={styles.subValue}>{subValue}</Text>}
+      <View style={styles.valueContainer}>
+        <Text style={[styles.value, { fontSize: valueFontSize }]}>{value}</Text>
+        {unit && <Text style={styles.unit}>{unit}</Text>}
       </View>
+      {subValue && <Text style={styles.subValue}>{subValue}</Text>}
     </View>
   );
 };
@@ -43,7 +33,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -53,33 +42,32 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
+  },
+  icon: {
+    marginRight: 6,
   },
   title: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#6B7280',
-    marginLeft: 6,
     fontWeight: '500',
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  valueRow: {
+  valueContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
   value: {
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#111111',
   },
   unit: {
     fontSize: 14,
     color: '#6B7280',
     marginLeft: 4,
+    fontWeight: '500',
   },
   subValue: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#6B7280',
     marginTop: 4,
   },

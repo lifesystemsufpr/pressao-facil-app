@@ -35,7 +35,6 @@ export type MainTabParamList = {
   MeasurementsTab: undefined;
   NewMeasurementTab: undefined; // Aba fake para disparar o Modal
   EvolutionTab: undefined;
-  ProfileTab: undefined;
 };
 
 export type RootStackParamList = {
@@ -45,6 +44,7 @@ export type RootStackParamList = {
   MenuScreen: undefined; // Menu lateral customizado
   NovaMedicaoModal: undefined; // Modal Global
   InstrucaoModal: undefined; // Modal de Instrução
+  ResultadosMedicaoModal: { id: string }; // Modal de Resultados
   Alerts: NavigatorScreenParams<AlertsStackParamList>;
   Reports: NavigatorScreenParams<ReportsStackParamList>;
   Profile: NavigatorScreenParams<ProfileStackParamList>;

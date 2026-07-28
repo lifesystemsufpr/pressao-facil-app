@@ -44,13 +44,15 @@ export const AlertsScreen = () => {
         <>
             {/* //container de scroll */}
             <ScrollView contentContainerStyle={styles.container}>
-                <Text style={styles.title}>
-                    Meus Alertas
-                </Text>
+                <View style={styles.header}>
+                    <Text style={styles.title}>
+                        Meus Alertas
+                    </Text>
 
-                <Text style={styles.subtitle}>
-                    Gerencie seus horários para suas medições diárias.
-                </Text>
+                    <Text style={styles.subtitle}>
+                        Gerencie seus horários para suas medições diárias.
+                    </Text>
+                </View>
 
                 <View style={styles.alertsContainer}>
                     {alerts.map((alert) => {
@@ -196,18 +198,19 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8F7FC'
     },
 
+    header: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 20
+        color: '#1A202C',
+        marginBottom: 4,
     },
-
     subtitle: {
-        marginTop: 8,
-        marginBottom: 24,
-        fontSize: 15,
-        lineHeight: 22,
-        color: '#6B7280',
+        fontSize: 14,
+        color: '#718096',
     },
 
     alertsContainer: {

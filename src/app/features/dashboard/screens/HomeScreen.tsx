@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../../shared/types/navigation';
 import { useProfile } from '../../onboarding';
+import { HamburgerMenuIcon } from '../../../shared/components/HamburgerMenuIcon';
 
 const chartValues = [0, 0, 0, 0, 0, 0, 0];
 
@@ -16,8 +17,13 @@ export const HomeScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.greeting}>{firstName ? `Bom dia, ${firstName}` : 'Bom dia'}</Text>
-        <Text style={styles.subtitle}>Seu painel de saúde diário.</Text>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={styles.greeting}>{firstName ? `Bom dia, ${firstName}` : 'Bom dia'}</Text>
+            <Text style={styles.subtitle}>Seu painel de saúde diário.</Text>
+          </View>
+          <HamburgerMenuIcon />
+        </View>
 
         <View style={[styles.card, styles.pressureCard]}>
           <View style={styles.rowBetween}>
@@ -40,14 +46,13 @@ export const HomeScreen = () => {
           </View>
         </View>
 
-        <TouchableOpacity style={[styles.card, styles.nextMeasurement]}>
+        <View style={[styles.card, styles.nextMeasurement]}>
           <View style={styles.clockCircle}><Ionicons name="time-outline" size={27} color="#075E9F" /></View>
           <View style={styles.flex}>
             <Text style={styles.nextLabel}>Próxima medição</Text>
             <Text style={styles.nextTime}>--:--</Text>
           </View>
-          <Ionicons name="chevron-forward" size={24} color="#7B8290" />
-        </TouchableOpacity>
+        </View>
 
         <Text style={styles.sectionTitle}>Resumo do dia</Text>
         <View style={[styles.card, styles.summaryCard]}>
@@ -92,6 +97,7 @@ export const HomeScreen = () => {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F9F9FF' },
   content: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 130 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   greeting: { color: '#20232B', fontSize: 30, fontWeight: '800' },
   subtitle: { color: '#555B67', fontSize: 16, marginTop: 4, marginBottom: 28 },
   card: { backgroundColor: '#FFFFFF', borderRadius: 14, shadowColor: '#1D2939',

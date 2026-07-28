@@ -63,9 +63,14 @@ const PerfilComDados = ({ perfil }: { perfil: PerfilUsuario }) => {
       contentContainerStyle={styles.content}
       accessibilityLabel="Tela de perfil"
     >
-      <Text style={styles.title} accessibilityRole="header">
-        Perfil
-      </Text>
+      <View style={styles.header}>
+        <Text style={styles.title} accessibilityRole="header">
+          Perfil
+        </Text>
+        <Text style={styles.subtitle}>
+          Mantenha seus dados sempre atualizados.
+        </Text>
+      </View>
 
       <View
         style={styles.card}
@@ -163,9 +168,14 @@ const PerfilSemDados = () => (
     style={[styles.screen, styles.centered]}
     accessibilityLabel="Tela de perfil sem dados"
   >
-    <Text style={styles.title} accessibilityRole="header">
-      Perfil
-    </Text>
+    <View style={styles.header}>
+      <Text style={styles.title} accessibilityRole="header">
+        Perfil
+      </Text>
+      <Text style={styles.subtitle}>
+        Mantenha seus dados sempre atualizados.
+      </Text>
+    </View>
     <Text style={styles.emptyTitle}>Perfil ainda não preenchido</Text>
     <Text style={styles.emptyMensagem}>
       Cadastre seus dados de saúde para manter suas informações sempre à mão
@@ -209,11 +219,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
-  title: {
-    fontSize: 30,
-    fontWeight: '700',
-    color: COLORS.textStrong,
+  header: {
+    alignItems: 'center',
     marginBottom: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1A202C', // COLORS.textStrong no escopo global dessa paleta ajustada
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#718096',
   },
 
   // Card principal
