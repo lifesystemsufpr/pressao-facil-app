@@ -1,11 +1,13 @@
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity, StyleSheet, View } from 'react-native';
 
-const PERIODS = ['7 Dias', '30 Dias', '6 Meses', 'Este Ano'];
+import { EvolutionPeriod } from '../types';
+
+const PERIODS: EvolutionPeriod[] = ['7 Dias', '30 Dias', '6 Meses', 'Este Ano'];
 
 interface PeriodFilterProps {
-  activePeriod: string;
-  onSelectPeriod: (period: string) => void;
+  activePeriod: EvolutionPeriod;
+  onSelectPeriod: (period: EvolutionPeriod) => void;
 }
 
 export const PeriodFilter = ({ activePeriod, onSelectPeriod }: PeriodFilterProps) => {

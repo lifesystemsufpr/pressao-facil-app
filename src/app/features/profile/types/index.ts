@@ -1,5 +1,5 @@
 // Types da feature profile
-//
+export * from './store';//
 // Modelo de Domínio Limpo: interface consumida diretamente pela store (em
 // memória, mockada nesta etapa) e pelas telas.
 

@@ -8,12 +8,12 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../../shared/types/navigation';
 import { OnboardingHeader } from '../components/OnboardingHeader';
-import { useProfile } from '../store/ProfileContext';
+import { useProfileStore } from '../../profile/store/useProfileStore';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ClinicalData'>;
 
 export const ClinicalDataScreen = ({ navigation, route }: Props) => {
-  const { saveProfile } = useProfile();
+  const salvar = useProfileStore(state => state.salvar);
   
   const [usesBloodPressureMeds, setUsesBloodPressureMeds] = useState<boolean | null>(null);
   const [bloodPressureMedsName, setBloodPressureMedsName] = useState('');
@@ -26,9 +26,8 @@ export const ClinicalDataScreen = ({ navigation, route }: Props) => {
   const [smokerOrLivesWithSmoker, setSmokerOrLivesWithSmoker] = useState<boolean | null>(null);
 
   const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
 
-  const completeRegistration = async () => {
+  const completeRegistration = () => {
     if (usesBloodPressureMeds === null) return setError('Responda se utiliza medicamento para pressão.');
     if (usesBloodPressureMeds && bloodPressureMedsName.trim().length === 0) return setError('Informe qual medicamento para pressão você utiliza.');
     if (familyHistoryHypertension === null) return setError('Responda sobre histórico de hipertensão na família.');
@@ -36,25 +35,18 @@ export const ClinicalDataScreen = ({ navigation, route }: Props) => {
     if (hasChronicDisease && chronicDiseaseName.trim().length === 0) return setError('Informe qual doença crônica você possui.');
     if (smokerOrLivesWithSmoker === null) return setError('Responda se é fumante ou convive com algum.');
 
-    try {
-      setSaving(true);
-      setError('');
-      await saveProfile({
-        ...route.params.personalData,
-        weightKg: route.params.weightKg,
-        heightCm: route.params.heightCm,
-        usesBloodPressureMeds,
-        bloodPressureMedsName: usesBloodPressureMeds ? bloodPressureMedsName.trim() : undefined,
-        familyHistoryHypertension,
-        hasChronicDisease,
-        chronicDiseaseName: hasChronicDisease ? chronicDiseaseName.trim() : undefined,
-        smokerOrLivesWithSmoker,
-      });
-    } catch {
-      Alert.alert('Não foi possível salvar', 'Tente concluir o cadastro novamente.');
-    } finally {
-      setSaving(false);
-    }
+    setError('');
+    salvar({
+      ...route.params.personalData,
+      weightKg: route.params.weightKg,
+      heightCm: route.params.heightCm,
+      usesBloodPressureMeds,
+      bloodPressureMedsName: usesBloodPressureMeds ? bloodPressureMedsName.trim() : undefined,
+      familyHistoryHypertension,
+      hasChronicDisease,
+      chronicDiseaseName: hasChronicDisease ? chronicDiseaseName.trim() : undefined,
+      smokerOrLivesWithSmoker,
+    });
   };
 
   const renderRadio = (
@@ -127,9 +119,9 @@ export const ClinicalDataScreen = ({ navigation, route }: Props) => {
 
           {!!error && <Text style={styles.error}>{error}</Text>}
           
-          <TouchableOpacity style={[styles.button, saving && styles.disabled]} onPress={completeRegistration} disabled={saving}>
-            <Text style={styles.buttonText}>{saving ? 'Salvando...' : 'Concluir cadastro'}</Text>
-            {!saving && <Ionicons name="checkmark-circle-outline" size={23} color="#FFFFFF" />}
+          <TouchableOpacity style={styles.button} onPress={completeRegistration}>
+            <Text style={styles.buttonText}>Concluir cadastro</Text>
+            <Ionicons name="checkmark-circle-outline" size={23} color="#FFFFFF" />
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -1,17 +1,33 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MeasurementsScreenProps } from '../../../shared/types/navigation';
 import { SearchBar, FilterChip } from '../../../shared/components';
 import { HamburgerMenuIcon } from '../../../shared/components/HamburgerMenuIcon';
 import { BloodPressureCard, BloodPressureMeasurement } from '../components/BloodPressureCard';
 import { MeasurementStatus } from '../components/StatusBadge';
 
-const mockData: BloodPressureMeasurement[] = [
-  { id: '1', dateLabel: 'Hoje, 08:30', systolic: 120, diastolic: 80, heartRate: 72, status: 'Normal' },
-  { id: '2', dateLabel: 'Ontem, 19:45', systolic: 135, diastolic: 85, heartRate: 76, status: 'Elevada' },
-  { id: '3', dateLabel: '10/05/2026, 09:15', systolic: 150, diastolic: 95, heartRate: 85, status: 'Alta' },
-  { id: '4', dateLabel: '09/05/2026, 08:00', systolic: 118, diastolic: 78, heartRate: 68, status: 'Normal' },
-];
+import { useMedicoesStore } from '../store/useMedicoesStore';
+
+const calcularStatus = (sys: number, dia: number): MeasurementStatus => {
+  if (sys >= 140 || dia >= 90) return 'Alta';
+  if (sys >= 130 || dia >= 85) return 'Elevada';
+  return 'Normal';
+};
+
+const formatarData = (isoStr: string) => {
+  const date = new Date(isoStr);
+  const hoje = new Date();
+  const isHoje = date.getDate() === hoje.getDate() && date.getMonth() === hoje.getMonth() && date.getFullYear() === hoje.getFullYear();
+  const isOntem = date.getDate() === hoje.getDate() - 1 && date.getMonth() === hoje.getMonth() && date.getFullYear() === hoje.getFullYear();
+  
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const h = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  
+  if (isHoje) return `Hoje, ${h}`;
+  if (isOntem) return `Ontem, ${h}`;
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}, ${h}`;
+};
 
 export const HistoricoMedicoesScreen = ({ navigation }: MeasurementsScreenProps<'HistoricoMedicoes'>) => {
   const [activeFilter, setActiveFilter] = useState('Todos');
@@ -29,25 +45,36 @@ export const HistoricoMedicoesScreen = ({ navigation }: MeasurementsScreenProps<
     setSearchQuery(v);
   };
 
+  const historico = useMedicoesStore(state => state.historico);
+
   const filteredData = useMemo(() => {
-    return mockData.filter((item) => {
+    const mappedData: BloodPressureMeasurement[] = historico.map(m => ({
+      id: m.id,
+      dateLabel: formatarData(m.dataHora),
+      systolic: m.sistolica,
+      diastolic: m.diastolica,
+      heartRate: m.frequenciaCardiaca,
+      status: calcularStatus(m.sistolica, m.diastolica),
+    }));
+
+    return mappedData.filter((item) => {
       // Filtro de pesquisa (Apenas Data)
       const query = searchQuery.toLowerCase();
       const matchesSearch = item.dateLabel.toLowerCase().includes(query);
 
       if (!matchesSearch) return false;
 
-      // Filtro de Chips (Mock simplificado)
+      // Filtro de Chips
       if (activeFilter === 'Hoje') {
         return item.dateLabel.includes('Hoje');
       }
       if (activeFilter === 'Semana') {
         return item.dateLabel.includes('Hoje') || item.dateLabel.includes('Ontem');
       }
-      // 'Mês' e 'Todos' mostram todos no mock atual
+      // 'Mês' e 'Todos'
       return true;
     });
-  }, [activeFilter, searchQuery]);
+  }, [historico, activeFilter, searchQuery]);
 
   const headerComponent = (
     <View style={styles.headerContainer}>

@@ -9,21 +9,18 @@
  * ficam em {@link CONTEXTO_LABELS}.
  */
 export type ContextoMedicao =
-  | 'antes_cafe'
-  | 'apos_atividade_fisica'
+  | 'briguei_com_alguem'
   | 'apos_medicamento';
 
 /** Rótulos legíveis para exibição na UI (público idoso: texto claro e completo). */
 export const CONTEXTO_LABELS: Record<ContextoMedicao, string> = {
-  antes_cafe: 'Antes do café',
-  apos_atividade_fisica: 'Após atividade física',
+  briguei_com_alguem: 'Briguei com alguém',
   apos_medicamento: 'Após medicamento',
 };
 
 /** Lista ordenada dos contextos, útil para seletores na UI. */
 export const CONTEXTOS_MEDICAO: ContextoMedicao[] = [
-  'antes_cafe',
-  'apos_atividade_fisica',
+  'briguei_com_alguem',
   'apos_medicamento',
 ];
 
@@ -42,5 +39,9 @@ export interface Medicao {
   /** Data e hora da medição em ISO 8601 (ex.: `2026-07-22T08:30:00.000Z`). */
   dataHora: string;
   /** Contexto da medição. */
-  contexto: ContextoMedicao;
+  contexto?: ContextoMedicao[];
+  /** Observações adicionais (opcional). */
+  observacao?: string;
 }
+
+export * from './store';
