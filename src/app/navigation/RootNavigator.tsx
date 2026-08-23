@@ -9,15 +9,28 @@ import { ReportsNavigator } from '../features/reports';
 import { ProfileNavigator } from '../features/profile';
 import { MenuScreen } from '../shared/components/MenuScreen';
 import {
-  BodyMeasurementsScreen, PersonalDataScreen, ClinicalDataScreen, SplashScreen, useProfile,
+  BodyMeasurementsScreen, PersonalDataScreen, ClinicalDataScreen, SplashScreen
 } from '../features/onboarding';
+import { useMedicoesStore } from '../features/measurements/store/useMedicoesStore';
+import { useDashboardStore } from '../features/dashboard/store/useDashboardStore';
+import { useAlertsStore } from '../features/alerts/store/useAlertsStore';
+import { useEvolutionStore } from '../features/evolution/store/useEvolutionStore';
+import { useProfileStore } from '../features/profile/store/useProfileStore';
+import { useReportsStore } from '../features/reports/store/useReportsStore';
 import { Feather } from '@expo/vector-icons';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator = () => {
-  const { isLoading, profile } = useProfile();
-  if (isLoading) return <SplashScreen />;
+  const profile = useProfileStore(state => state.profile);
+  const profileHydrated = useProfileStore(state => state._hasHydrated);
+  const medicoesHydrated = useMedicoesStore(state => state._hasHydrated);
+  const dashboardHydrated = useDashboardStore(state => state._hasHydrated);
+  const alertsHydrated = useAlertsStore(state => state._hasHydrated);
+  const evolutionHydrated = useEvolutionStore(state => state._hasHydrated);
+  const reportsHydrated = useReportsStore(state => state._hasHydrated);
+  
+  if (!profileHydrated || !medicoesHydrated || !dashboardHydrated || !alertsHydrated || !evolutionHydrated || !reportsHydrated) return <SplashScreen />;
 
   if (!profile) {
     return (

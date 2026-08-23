@@ -3,17 +3,20 @@ import { NavigationContainer } from '@react-navigation/native';
 import { RootNavigator } from './src/app/navigation/RootNavigator';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ProfileProvider } from './src/app/features/onboarding';
+import { notificationService } from './src/app/features/alerts/services/notificationService';
 
 export default function App() {
+  React.useEffect(() => {
+    // Solicita permissões de notificação ao iniciar o app
+    notificationService.requestPermissions();
+  }, []);
+
   return (
     <SafeAreaProvider>
-      <ProfileProvider>
-        <NavigationContainer>
-          <StatusBar style="dark" />
-          <RootNavigator />
-        </NavigationContainer>
-      </ProfileProvider>
+      <NavigationContainer>
+        <StatusBar style="dark" />
+        <RootNavigator />
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 }

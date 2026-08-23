@@ -1,12 +1,28 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
+import { useEvolutionStats } from '../hooks/useEvolutionStats';
+import { EvolutionPeriod } from '../types';
 
-export const LineChartCard = ({ period }: { period?: string }) => {
+function formatLabel(dateString: string, period: EvolutionPeriod): string {
+  const d = new Date(dateString);
+  const dia = String(d.getDate()).padStart(2, '0');
+  const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const mes = meses[d.getMonth()];
+  
+  if (period === '7 Dias' || period === '30 Dias') {
+    return `${dia}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+  return mes;
+}
+
+export const LineChartCard = ({ period }: { period: EvolutionPeriod }) => {
   const chartWidth = Dimensions.get('window').width - 64; 
 
   const [showSis, setShowSis] = useState(true);
   const [showDia, setShowDia] = useState(true);
+
+  const { dataPoints } = useEvolutionStats(period);
 
   const handleToggleSis = () => {
     if (showSis && !showDia) return; 
@@ -18,31 +34,35 @@ export const LineChartCard = ({ period }: { period?: string }) => {
     setShowDia(!showDia);
   };
 
+  const hasData = dataPoints && dataPoints.length > 0;
+  
+  const labels = hasData ? dataPoints.map(p => formatLabel(p.dataHora, period)) : [''];
+  const sisData = hasData ? dataPoints.map(p => p.sistolica) : [0];
+  const diaData = hasData ? dataPoints.map(p => p.diastolica) : [0];
+
   const datasets = [];
 
-  // Dados mockados variando pelo período
-  const mockData = {
-    '7 Dias': { sis: [122, 125, 120, 118, 124, 126, 122], dia: [82, 84, 80, 78, 83, 85, 82], labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'] },
-    '30 Dias': { sis: [120, 118, 122, 119, 121, 117, 120], dia: [80, 78, 81, 79, 82, 77, 80], labels: ['01', '05', '10', '15', '20', '25', '30'] },
-    '6 Meses': { sis: [130, 128, 125, 122, 120, 121], dia: [85, 83, 82, 80, 78, 79], labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'] },
-    'Este Ano': { sis: [128, 125, 130, 122, 120, 124, 121], dia: [84, 82, 85, 80, 78, 81, 80], labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'] },
-  };
-
-  const currentData = mockData[(period as keyof typeof mockData)] || mockData['30 Dias'];
-
-  if (showSis) {
+  if (showSis && hasData) {
     datasets.push({
-      data: currentData.sis,
+      data: sisData,
       color: (opacity = 1) => `rgba(25, 118, 210, ${opacity})`, 
       strokeWidth: 3,
     });
   }
 
-  if (showDia) {
+  if (showDia && hasData) {
     datasets.push({
-      data: currentData.dia,
+      data: diaData,
       color: (opacity = 1) => `rgba(90, 174, 255, ${opacity})`, 
       strokeWidth: 3,
+    });
+  }
+
+  // Fallback to avoid crash on empty chart
+  if (datasets.length === 0) {
+    datasets.push({
+      data: [0],
+      color: () => 'rgba(0,0,0,0)'
     });
   }
 
@@ -65,41 +85,47 @@ export const LineChartCard = ({ period }: { period?: string }) => {
         </View>
       </View>
 
-      <View style={styles.chartContainer}>
-        <LineChart
-          data={{
-            labels: currentData.labels,
-            datasets: datasets,
-          }}
-          width={chartWidth}
-          height={180}
-          withDots={true}
-          withInnerLines={true}
-          withOuterLines={false}
-          withVerticalLines={false}
-          withHorizontalLines={true}
-          withShadow={false}
-          bezier
-          chartConfig={{
-            backgroundColor: '#FFFFFF',
-            backgroundGradientFrom: '#FFFFFF',
-            backgroundGradientTo: '#FFFFFF',
-            decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(229, 231, 235, ${opacity})`, // grid color (#E5E7EB)
-            labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`, // #6B7280
-            style: {
-              borderRadius: 16,
-            },
-            propsForDots: {
-              r: '4',
-              strokeWidth: '2',
-              stroke: '#FFFFFF',
-            },
-            fillShadowGradientOpacity: 0, // no fill
-          }}
-          style={styles.chart}
-        />
-      </View>
+      {!hasData ? (
+        <View style={[styles.chartContainer, { height: 180, justifyContent: 'center' }]}>
+          <Text style={{ color: '#9CA3AF' }}>Nenhuma medição neste período</Text>
+        </View>
+      ) : (
+        <View style={styles.chartContainer}>
+          <LineChart
+            data={{
+              labels: labels,
+              datasets: datasets,
+            }}
+            width={chartWidth}
+            height={180}
+            withDots={true}
+            withInnerLines={true}
+            withOuterLines={false}
+            withVerticalLines={false}
+            withHorizontalLines={true}
+            withShadow={false}
+            bezier
+            chartConfig={{
+              backgroundColor: '#FFFFFF',
+              backgroundGradientFrom: '#FFFFFF',
+              backgroundGradientTo: '#FFFFFF',
+              decimalPlaces: 0,
+              color: (opacity = 1) => `rgba(229, 231, 235, ${opacity})`, // grid color (#E5E7EB)
+              labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`, // #6B7280
+              style: {
+                borderRadius: 16,
+              },
+              propsForDots: {
+                r: '4',
+                strokeWidth: '2',
+                stroke: '#FFFFFF',
+              },
+              fillShadowGradientOpacity: 0, // no fill
+            }}
+            style={styles.chart}
+          />
+        </View>
+      )}
     </View>
   );
 };

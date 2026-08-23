@@ -1,1 +1,2 @@
-// Types da feature onboarding
+export * from './profile';
+export * from './store';

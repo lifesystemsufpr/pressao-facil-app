@@ -1,96 +1,95 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useEvolutionStats } from '../hooks/useEvolutionStats';
+import { EvolutionPeriod } from '../types';
 
-export const BarChartCard = ({ period }: { period?: string }) => {
-  // Dados mockados variando por período
-  const mockBars = {
-    '7 Dias': [
-      { height: 50, value: 60, color: '#A9C7D9' },
-      { height: 65, value: 78, color: '#4484A9' },
-      { height: 60, value: 72, color: '#A9C7D9' },
-      { height: 45, value: 54, color: '#D3DFE8' },
-      { height: 85, value: 102, color: '#015B8C', isMax: true },
-      { height: 60, value: 72, color: '#A9C7D9' },
-      { height: 50, value: 60, color: '#A9C7D9' },
-    ],
-    '30 Dias': [
-      { height: 40, value: 48, color: '#A9C7D9' },
-      { height: 50, value: 60, color: '#A9C7D9' },
-      { height: 65, value: 78, color: '#4484A9' },
-      { height: 35, value: 42, color: '#A9C7D9' },
-      { height: 60, value: 72, color: '#A9C7D9' },
-      { height: 45, value: 54, color: '#D3DFE8' },
-      { height: 85, value: 102, color: '#015B8C', isMax: true },
-      { height: 60, value: 72, color: '#A9C7D9' },
-      { height: 58, value: 69, color: '#A9C7D9' },
-      { height: 50, value: 60, color: '#A9C7D9' },
-    ],
-    '6 Meses': [
-      { height: 50, value: 60, color: '#A9C7D9' },
-      { height: 60, value: 72, color: '#A9C7D9' },
-      { height: 45, value: 54, color: '#D3DFE8' },
-      { height: 85, value: 102, color: '#015B8C', isMax: true },
-      { height: 60, value: 72, color: '#A9C7D9' },
-      { height: 58, value: 69, color: '#A9C7D9' },
-    ],
-    'Este Ano': [
-      { height: 50, value: 60, color: '#A9C7D9' },
-      { height: 65, value: 78, color: '#4484A9' },
-      { height: 60, value: 72, color: '#A9C7D9' },
-      { height: 85, value: 102, color: '#015B8C', isMax: true },
-      { height: 60, value: 72, color: '#A9C7D9' },
-    ],
-  };
+function formatLabel(dateString: string, period: EvolutionPeriod): string {
+  const d = new Date(dateString);
+  const dia = String(d.getDate()).padStart(2, '0');
+  const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const mes = meses[d.getMonth()];
+  
+  if (period === '7 Dias' || period === '30 Dias') {
+    return `${dia}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+  return mes;
+}
 
-  const bars = mockBars[(period as keyof typeof mockBars)] || mockBars['30 Dias'];
+export const BarChartCard = ({ period }: { period: EvolutionPeriod }) => {
+  const { dataPoints } = useEvolutionStats(period);
 
-  const labels = {
-    '7 Dias': ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-    '30 Dias': ['01', '05', '10', '15', '20', '25', '30'],
-    '6 Meses': ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
-    'Este Ano': ['Fev', 'Mai', 'Ago', 'Nov', 'Dez']
-  }[period || '30 Dias'] || [];
+  // Pega no máximo os últimos 10 para não quebrar o layout
+  const recentPoints = dataPoints.slice(-10);
+
+  const hasData = recentPoints.length > 0;
+
+  // Calcula o valor máximo para destacar a barra
+  let maxValue = -1;
+  recentPoints.forEach(p => {
+    if (p.frequenciaCardiaca > maxValue) {
+      maxValue = p.frequenciaCardiaca;
+    }
+  });
+
+  const bars = recentPoints.map(p => {
+    const isMax = p.frequenciaCardiaca === maxValue && maxValue > 0;
+    // Baseamos a altura num máximo teórico de 150 bpm para não estourar o container
+    const heightPercent = Math.min((p.frequenciaCardiaca / 150) * 100, 100);
+    return {
+      value: p.frequenciaCardiaca,
+      height: heightPercent,
+      color: isMax ? '#015B8C' : '#A9C7D9',
+      isMax,
+      label: formatLabel(p.dataHora, period)
+    };
+  });
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.title}>Frequência Cardíaca</Text>
-        <Text style={styles.subtitle}>Registros Diários (bpm)</Text>
+        <Text style={styles.subtitle}>Registros (bpm)</Text>
       </View>
 
       <View style={styles.chartBody}>
         {/* Eixo Y */}
         <View style={styles.yAxis}>
-          <Text style={styles.axisText}>120</Text>
-          <Text style={styles.axisText}>80</Text>
-          <Text style={styles.axisText}>40</Text>
+          <Text style={styles.axisText}>150</Text>
+          <Text style={styles.axisText}>100</Text>
+          <Text style={styles.axisText}>50</Text>
         </View>
 
         {/* Área do Gráfico */}
-        <View style={styles.chartArea}>
-          <View style={styles.barsContainer}>
-            {bars.map((bar, index) => (
-              <View key={index} style={styles.barWrapper}>
-                <Text style={styles.barValue}>{bar.value}</Text>
-                {bar.isMax && <View style={styles.barTopRed} />}
-                <View
-                  style={[
-                    styles.bar,
-                    { height: `${bar.height}%`, backgroundColor: bar.color },
-                    bar.isMax ? styles.barMax : null
-                  ]}
-                />
-              </View>
-            ))}
+        {!hasData ? (
+          <View style={[styles.chartArea, { justifyContent: 'center', alignItems: 'center' }]}>
+            <Text style={{ color: '#9CA3AF' }}>Nenhuma medição neste período</Text>
           </View>
-          
-          {/* Eixo X */}
-          <View style={styles.xAxis}>
-            {labels.map((label, index) => (
-              <Text key={index} style={styles.axisText}>{label}</Text>
-            ))}
+        ) : (
+          <View style={styles.chartArea}>
+            <View style={styles.barsContainer}>
+              {bars.map((bar, index) => (
+                <View key={index} style={styles.barWrapper}>
+                  <Text style={styles.barValue}>{bar.value}</Text>
+                  {bar.isMax && <View style={styles.barTopRed} />}
+                  <View
+                    style={[
+                      styles.bar,
+                      { height: `${bar.height}%`, backgroundColor: bar.color },
+                      bar.isMax ? styles.barMax : null
+                    ]}
+                  />
+                </View>
+              ))}
+            </View>
+            
+            {/* Eixo X */}
+            <View style={styles.xAxis}>
+              {bars.map((bar, index) => (
+                <Text key={index} style={[styles.axisText, { fontSize: 8 }]}>{bar.label}</Text>
+              ))}
+            </View>
           </View>
-        </View>
+        )}
       </View>
     </View>
   );
@@ -132,7 +131,7 @@ const styles = StyleSheet.create({
     paddingRight: 8,
     borderRightWidth: 1,
     borderColor: '#E5E7EB',
-    paddingBottom: 24, // Compensa a altura do eixo X para as labels ficarem alinhadas às barras
+    paddingBottom: 24, // Compensa a altura do eixo X
   },
   axisText: {
     fontSize: 10,

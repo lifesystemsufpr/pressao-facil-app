@@ -4,15 +4,55 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../../shared/types/navigation';
-import { useProfile } from '../../onboarding';
+import { useMedicoesStore } from '../../measurements';
+import { useDashboardStore } from '../store/useDashboardStore';
+import { useProfileStore } from '../../profile/store/useProfileStore';
 import { HamburgerMenuIcon } from '../../../shared/components/HamburgerMenuIcon';
+import { useDashboardStats } from '../hooks/useDashboardStats';
 
-const chartValues = [0, 0, 0, 0, 0, 0, 0];
+const calcularStatus = (sys: number, dia: number) => {
+  if (sys >= 140 || dia >= 90) return 'Alta';
+  if (sys >= 130 || dia >= 85) return 'Elevada';
+  return 'Normal';
+};
+
+const getStatusColors = (status: string | null) => {
+  switch (status) {
+    case 'Alta':
+      return { badgeBg: '#FEE2E2', dotColor: '#DC2626' };
+    case 'Elevada':
+      return { badgeBg: '#FEF3C7', dotColor: '#D97706' };
+    case 'Normal':
+      return { badgeBg: '#E3F6F1', dotColor: '#13B88A' };
+    default:
+      return { badgeBg: '#F3F4F6', dotColor: '#9CA3AF' };
+  }
+};
+
+const formatarHora = (isoStr: string) => {
+  const date = new Date(isoStr);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const h = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  
+  const hoje = new Date();
+  const isHoje = date.getDate() === hoje.getDate() && date.getMonth() === hoje.getMonth() && date.getFullYear() === hoje.getFullYear();
+  if (isHoje) return `Hoje às ${h}`;
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)} às ${h}`;
+};
 
 export const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { profile } = useProfile();
+  const profile = useProfileStore(state => state.profile);
   const firstName = profile?.fullName.split(/\s+/)[0];
+  const historico = useMedicoesStore(state => state.historico);
+  const ultimaMedicao = historico.length > 0 ? historico[0] : null;
+  
+  const statusStr = ultimaMedicao ? calcularStatus(ultimaMedicao.sistolica, ultimaMedicao.diastolica) : 'Sem medição';
+  const statusColors = getStatusColors(ultimaMedicao ? statusStr : null);
+
+  const chartValues = useDashboardStore(state => state.chartValues);
+  
+  const { summary, nextMeasurementTime } = useDashboardStats();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -28,20 +68,25 @@ export const HomeScreen = () => {
         <View style={[styles.card, styles.pressureCard]}>
           <View style={styles.rowBetween}>
             <Text style={styles.eyebrow}>ÚLTIMA MEDIÇÃO</Text>
-            <View style={styles.timeBadge}><Text style={styles.timeBadgeText}>Sem registros</Text></View>
+            <View style={styles.timeBadge}>
+              <Text style={styles.timeBadgeText}>
+                {ultimaMedicao ? formatarHora(ultimaMedicao.dataHora) : 'Sem registros'}
+              </Text>
+            </View>
           </View>
           <View style={styles.pressureRow}>
-            <Text style={styles.systolic}>0</Text>
-            <Text style={styles.diastolic}> / 0</Text>
+            <Text style={styles.systolic}>{ultimaMedicao ? ultimaMedicao.sistolica : 0}</Text>
+            <Text style={styles.diastolic}> / {ultimaMedicao ? ultimaMedicao.diastolica : 0}</Text>
             <Text style={styles.unit}>mmHg</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.badgeRow}>
             <View style={[styles.statusBadge, styles.heartBadge]}>
-              <Ionicons name="heart" size={18} color="#C61D24" /><Text style={styles.statusText}>0 bpm</Text>
+              <Ionicons name="heart" size={18} color="#C61D24" /><Text style={styles.statusText}>{ultimaMedicao ? ultimaMedicao.frequenciaCardiaca : 0} bpm</Text>
             </View>
-            <View style={[styles.statusBadge, styles.normalBadge]}>
-              <View style={styles.grayDot} /><Text style={styles.statusText}>Sem medição</Text>
+            <View style={[styles.statusBadge, { backgroundColor: statusColors.badgeBg }]}>
+              <View style={[styles.statusDot, { backgroundColor: statusColors.dotColor }]} />
+              <Text style={styles.statusText}>{statusStr}</Text>
             </View>
           </View>
         </View>
@@ -50,22 +95,34 @@ export const HomeScreen = () => {
           <View style={styles.clockCircle}><Ionicons name="time-outline" size={27} color="#075E9F" /></View>
           <View style={styles.flex}>
             <Text style={styles.nextLabel}>Próxima medição</Text>
-            <Text style={styles.nextTime}>--:--</Text>
+            <Text style={styles.nextTime}>{nextMeasurementTime}</Text>
           </View>
         </View>
 
         <Text style={styles.sectionTitle}>Resumo do dia</Text>
         <View style={[styles.card, styles.summaryCard]}>
-          <View style={styles.pendingMeasurement}>
-            <Ionicons name="ellipse-outline" size={23} color="#A7ADBA" />
-            <Text style={[styles.summaryText, styles.pendingText]}>Medição da manhã</Text>
-            <Text style={styles.pendingStatus}>Pendente</Text>
-          </View>
-          <View style={styles.pendingMeasurement}>
-            <Ionicons name="ellipse-outline" size={23} color="#A7ADBA" />
-            <Text style={[styles.summaryText, styles.pendingText]}>Medição da tarde</Text>
-            <Text style={styles.pendingStatus}>Pendente</Text>
-          </View>
+          {summary.length === 0 ? (
+            <View style={{ alignItems: 'center', paddingVertical: 10 }}>
+              <Text style={{ color: '#9CA3AF', fontSize: 14 }}>
+                Nenhum alerta configurado.
+              </Text>
+            </View>
+          ) : (
+            summary.map((item) => {
+              const isDone = item.status === 'Concluído';
+              return (
+                <View key={item.id} style={isDone ? styles.doneMeasurement : styles.pendingMeasurement}>
+                  <Ionicons name={isDone ? "checkmark-circle" : "ellipse-outline"} size={23} color={isDone ? "#1976C9" : "#A7ADBA"} />
+                  <Text style={[styles.summaryText, !isDone && styles.pendingText]}>{item.label}</Text>
+                  {isDone ? (
+                    <Text style={styles.doneTime}>Feito</Text>
+                  ) : (
+                    <Text style={styles.pendingStatus}>{item.status}</Text>
+                  )}
+                </View>
+              );
+            })
+          )}
         </View>
 
         <View style={[styles.card, styles.chartCard]}>
@@ -113,10 +170,9 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: '#ECEEF3', marginVertical: 13 },
   badgeRow: { flexDirection: 'row', gap: 20 },
   statusBadge: { paddingHorizontal: 12, height: 34, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 7 },
-  heartBadge: { backgroundColor: '#FFF0F2' }, normalBadge: { backgroundColor: '#E3F6F1' },
+  heartBadge: { backgroundColor: '#FFF0F2' },
   statusText: { color: '#282C34', fontSize: 13, fontWeight: '700' },
-  greenDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#13B88A' },
-  grayDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#98A2B3' },
+  statusDot: { width: 10, height: 10, borderRadius: 5 },
   nextMeasurement: { marginTop: 24, padding: 16, flexDirection: 'row', alignItems: 'center' },
   clockCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#68C1F5',
     alignItems: 'center', justifyContent: 'center', marginRight: 15 },

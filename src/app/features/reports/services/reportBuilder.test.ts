@@ -9,7 +9,7 @@ function medicao(over: Partial<Medicao> & Pick<Medicao, 'id' | 'dataHora'>): Med
     sistolica: 120,
     diastolica: 80,
     frequenciaCardiaca: 70,
-    contexto: 'antes_cafe',
+    contexto: ['briguei_com_alguem'],
     ...over,
   };
 }

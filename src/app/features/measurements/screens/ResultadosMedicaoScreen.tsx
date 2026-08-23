@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../../shared/types/navigation';
 import { PrimaryButton, SecondaryButton } from '../../../shared/components/Button';
 import { AlertCard } from '../components/AlertCard';
@@ -9,48 +10,57 @@ import { ObservationCard } from '../components/ObservationCard';
 import { ContextCard } from '../components/ContextCard';
 import { HamburgerMenuIcon } from '../../../shared/components/HamburgerMenuIcon';
 import { Ionicons } from '@expo/vector-icons';
+import { useMedicoesStore } from '../store/useMedicoesStore';
 
 export const ResultadosMedicaoScreen = ({ route, navigation }: RootStackScreenProps<'ResultadosMedicaoModal'>) => {
   const { id } = route.params;
 
-  // Mock data match
-  let measurement = {
-    systolic: 120,
-    diastolic: 80,
-    heartRate: 72,
-    date: 'Hoje',
-    time: '08:30 AM',
-    observation: 'Me sinto bem hoje.',
-    status: 'Normal',
-    contexts: ['Antes do café', 'Após medicamento'],
-  };
-
-  if (id === '2') {
-    measurement = {
-      systolic: 135,
-      diastolic: 85,
-      heartRate: 76,
-      date: 'Ontem',
-      time: '19:45',
-      observation: 'Senti um leve cansaço após o trabalho.',
-      status: 'Elevada',
-      contexts: ['Após atividade física'],
-    };
-  } else if (id === '3') {
-    measurement = {
-      systolic: 150,
-      diastolic: 95,
-      heartRate: 85,
-      date: '10/05',
-      time: '09:15 AM',
-      observation: 'Tomei o medicamento de controle atrasado hoje. Senti uma leve dor de cabeça ao acordar.',
-      status: 'Alta',
-      contexts: [],
-    };
-  }
+  const historico = useMedicoesStore(state => state.historico);
+  const medicao = historico.find(m => m.id === id);
 
   const handleGoBack = () => {
     navigation.navigate('Main' as any);
+  };
+
+  if (!medicao) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#111111" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Medição não encontrada</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const calcularStatus = (sys: number, dia: number) => {
+    if (sys >= 140 || dia >= 90) return 'Alta';
+    if (sys >= 130 || dia >= 85) return 'Elevada';
+    return 'Normal';
+  };
+
+  const status = calcularStatus(medicao.sistolica, medicao.diastolica);
+  const data = new Date(medicao.dataHora);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const dateStr = `${pad(data.getDate())}/${pad(data.getMonth() + 1)}/${data.getFullYear()}`;
+  const timeStr = `${pad(data.getHours())}:${pad(data.getMinutes())}`;
+  const contextLabels = Array.isArray(medicao.contexto)
+    ? medicao.contexto.map(c => c === 'briguei_com_alguem' ? 'Briguei com alguém' : 'Após medicamento')
+    : typeof medicao.contexto === 'string'
+      ? [medicao.contexto === 'briguei_com_alguem' ? 'Briguei com alguém' : 'Após medicamento']
+      : ['Nenhum contexto'];
+
+  const measurement = {
+    systolic: medicao.sistolica,
+    diastolic: medicao.diastolica,
+    heartRate: medicao.frequenciaCardiaca,
+    date: dateStr,
+    time: timeStr,
+    observation: medicao.observacao || '',
+    status: status,
+    contexts: contextLabels,
   };
 
   return (

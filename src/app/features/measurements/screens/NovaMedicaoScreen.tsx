@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useMedicoesStore } from '../store/useMedicoesStore';
+import { Medicao, ContextoMedicao } from '../types';
 
 type MeasurementContext = {
     id: number;
@@ -12,9 +14,8 @@ type MeasurementContext = {
 export const NovaMedicaoScreen = () => {
     const navigation = useNavigation();
     const [measurementContexts, setMeasurementContexts] = useState(
-        mockMeasurementContexts
+        DEFAULT_MEASUREMENT_CONTEXTS
     );
-    //estado que começa com o array de mock
     const now = new Date();
     const day = String(now.getDate()).padStart(2, '0');
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -29,6 +30,7 @@ export const NovaMedicaoScreen = () => {
     const [heartRate, setHeartRate] = useState('');
     const [date, setDate] = useState(currentDate);
     const [hour, setHour] = useState(currentHour);
+    const [observation, setObservation] = useState('');
 
     const handleSetSystolic = (text: string) => setSystolic(text.replace(/[^0-9]/g, ''));
     const handleSetDiastolic = (text: string) => setDiastolic(text.replace(/[^0-9]/g, ''));
@@ -57,6 +59,8 @@ export const NovaMedicaoScreen = () => {
             )
         );
     };
+    const adicionarMedicao = useMedicoesStore(state => state.adicionarMedicao);
+
     const handleSave = () => {
         if (!systolic.trim() || !diastolic.trim() || !heartRate.trim() || !date.trim() || !hour.trim()) {
             Alert.alert(
@@ -67,18 +71,35 @@ export const NovaMedicaoScreen = () => {
         }
 
         Alert.alert(
-            "Salvar Medição",
-            "Confirma que deseja salvar os dados desta medição?",
+            "Confirmar medição",
+            "Deseja salvar esta medição?",
             [
+                { text: "Cancelar", style: "cancel" },
                 {
-                    text: "Cancelar",
-                    style: "cancel"
-                },
-                { 
-                    text: "Salvar", 
+                    text: "Salvar",
                     onPress: () => {
-                        // Redireciona para a tela de resultados global 
-                        (navigation as any).navigate('ResultadosMedicaoModal', { id: '1' });
+                        const selectedContexts = measurementContexts.filter(c => c.selected);
+                        const contextosRaw: ContextoMedicao[] = selectedContexts.map(c => 
+                            c.id === 1 ? 'briguei_com_alguem' : 'apos_medicamento'
+                        );
+
+                        // Parse date (DD/MM/YYYY) and hour (HH:MM) to ISO string
+                        const [day, month, year] = date.split('/');
+                        const [hours, minutes] = hour.split(':');
+                        const isoDate = new Date(Number(year), Number(month) - 1, Number(day), Number(hours), Number(minutes)).toISOString();
+
+                        const novaMedicao: Medicao = {
+                            id: Date.now().toString(),
+                            sistolica: Number(systolic),
+                            diastolica: Number(diastolic),
+                            frequenciaCardiaca: Number(heartRate),
+                            dataHora: isoDate,
+                            contexto: contextosRaw.length > 0 ? contextosRaw : undefined,
+                            observacao: observation.trim() || undefined,
+                        };
+
+                        adicionarMedicao(novaMedicao);
+                        (navigation as any).navigate('ResultadosMedicaoModal', { id: novaMedicao.id });
                     }
                 }
             ]
@@ -229,6 +250,8 @@ export const NovaMedicaoScreen = () => {
                     style={styles.observationInput}
                     multiline
                     placeholder="Digite suas observações..."
+                    value={observation}
+                    onChangeText={setObservation}
                 />
             </View>
 
@@ -242,19 +265,14 @@ export const NovaMedicaoScreen = () => {
     )
 };
 
-const mockMeasurementContexts: MeasurementContext[] = [
+const DEFAULT_MEASUREMENT_CONTEXTS: MeasurementContext[] = [
     {
         id: 1,
-        label: 'Antes do café',
+        label: 'Briguei com alguém',
         selected: false,
     },
     {
         id: 2,
-        label: 'Após atividade física',
-        selected: false,
-    },
-    {
-        id: 3,
         label: 'Após medicamento',
         selected: false,
     },

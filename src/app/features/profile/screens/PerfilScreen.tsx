@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useProfile, LocalUserProfile } from '../../onboarding';
+import { useProfileStore } from '../store/useProfileStore';
+import { UserProfile } from '../types';
 
 // Mesma paleta de alto contraste usada na tela de Relatórios, para manter
 // consistência visual entre as telas do app.
@@ -35,7 +36,9 @@ const calcularIdade = (dataNascimento: string) => {
 };
 
 export const PerfilScreen = () => {
-  const { profile, isLoading } = useProfile();
+  const profile = useProfileStore(state => state.profile);
+  const hasHydrated = useProfileStore(state => state._hasHydrated);
+  const isLoading = !hasHydrated;
 
   if (isLoading) {
     return <PerfilSkeleton />;
@@ -52,7 +55,7 @@ export const PerfilScreen = () => {
 // Estado: COM DADOS
 // ---------------------------------------------------------------------------
 
-const PerfilComDados = ({ perfil }: { perfil: LocalUserProfile }) => {
+const PerfilComDados = ({ perfil }: { perfil: UserProfile }) => {
   const handleExportarDados = () => {
     Alert.alert(
       'Exportar Dados (PDF)',

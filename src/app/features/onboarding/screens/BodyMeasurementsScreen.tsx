@@ -8,12 +8,10 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../../shared/types/navigation';
 import { OnboardingHeader } from '../components/OnboardingHeader';
-import { useProfile } from '../store/ProfileContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'BodyMeasurements'>;
 
 export const BodyMeasurementsScreen = ({ navigation, route }: Props) => {
-  const { saveProfile } = useProfile();
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [error, setError] = useState('');

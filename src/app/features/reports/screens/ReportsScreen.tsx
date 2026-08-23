@@ -8,10 +8,13 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRelatorio } from '../hooks';
-import { usePerfilStore } from '../../profile/store';
+import { useProfileStore } from '../../profile/store';
 import type { RelatorioData } from '../types';
 import { FontAwesome5, MaterialIcons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Medicao } from '../../measurements';
+import { exportReportToPDF } from '../services/pdfExport';
+import { useState } from 'react';
+import { Alert } from 'react-native';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -45,6 +48,8 @@ function formatarDataCurta(iso: string): string {
   return `${dia}/${mes}`;
 }
 
+import { CONTEXTO_LABELS } from '../../measurements/types';
+
 function formatarHora(iso: string): string {
   const d = new Date(iso);
   let horas = d.getHours();
@@ -56,239 +61,167 @@ function formatarHora(iso: string): string {
   return `${strHoras}:${minutos} ${ampm}`;
 }
 
+const calcularStatus = (sys: number, dia: number) => {
+  if (sys >= 140 || dia >= 90) return 'Alta';
+  if (sys >= 130 || dia >= 85) return 'Elevada';
+  return 'Normal';
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'Alta': return '#DC2626';
+    case 'Elevada': return '#D97706';
+    case 'Normal': return '#13B88A';
+    default: return '#9CA3AF';
+  }
+};
+
+const formatContexts = (contexts?: string[]) => {
+  if (!contexts || contexts.length === 0) return 'Nenhum contexto';
+  return contexts.map(c => c === 'briguei_com_alguem' ? 'Briguei com alguém' : c === 'apos_medicamento' ? 'Após medicamento' : CONTEXTO_LABELS[c as keyof typeof CONTEXTO_LABELS] || 'Nenhum contexto').join(', ');
+};
+
+function calcularIdade(dataStr: string): number {
+  if (!dataStr) return 0;
+  const partes = dataStr.split('/');
+  if (partes.length !== 3) return 0;
+  const nascimento = new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
+  const hoje = new Date();
+  let idade = hoje.getFullYear() - nascimento.getFullYear();
+  const m = hoje.getMonth() - nascimento.getMonth();
+  if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+    idade--;
+  }
+  return idade;
+}
+
 // -----------------------------------------------------------------------------
 // Componente: O "Documento PDF" (Layout isolado que criamos na etapa anterior)
 // -----------------------------------------------------------------------------
 const PreviewDocument = ({ data, perfil }: { data: RelatorioData, perfil: any }) => {
   return (
     <View style={pdfStyles.container}>
-      {/* Header do PDF */}
-      <View style={pdfStyles.header}>
-        <View style={pdfStyles.headerLeft}>
-          <View style={pdfStyles.logoContainer}>
-            <FontAwesome5 name="heartbeat" size={20} color={COLORS.primary} />
-          </View>
-          <View>
-            <Text style={pdfStyles.headerTitle}>Pressão</Text>
-            <Text style={pdfStyles.headerTitle}>Fácil</Text>
-          </View>
-        </View>
-        <View style={pdfStyles.headerRight}>
-          <Text style={pdfStyles.patientInfo}>
-            Paciente: <Text style={pdfStyles.patientInfoBold}>{perfil?.nome || 'Usuário'}</Text>
-          </Text>
-          <Text style={pdfStyles.patientInfo}>
-            Data de Nasc.: <Text style={pdfStyles.patientInfoBold}>{'15/05/1978'}</Text>
-          </Text>
-        </View>
-      </View>
-
       <View style={pdfStyles.body}>
         {/* Card Resumo */}
         <View style={pdfStyles.card}>
-          <Text style={pdfStyles.cardTitle}>RESUMO <Text style={pdfStyles.cardTitleLight}>(Últimos 30 Dias)</Text></Text>
-
           <View style={pdfStyles.resumoGrid}>
             <View style={pdfStyles.resumoCol}>
               <Text style={pdfStyles.resumoLabel}>Média Sistólica:</Text>
-              <Text style={pdfStyles.resumoValue}>{data.resumo.mediaSistolica} <Text style={pdfStyles.resumoUnit}>mmHg</Text></Text>
+              <Text style={pdfStyles.resumoValue}>{data.resumo.mediaSistolica ?? '--'} <Text style={pdfStyles.resumoUnit}>mmHg</Text></Text>
             </View>
             <View style={pdfStyles.resumoCol}>
               <Text style={pdfStyles.resumoLabel}>Média Diastólica:</Text>
-              <Text style={pdfStyles.resumoValue}>{data.resumo.mediaDiastolica} <Text style={pdfStyles.resumoUnit}>mmHg</Text></Text>
+              <Text style={pdfStyles.resumoValue}>{data.resumo.mediaDiastolica ?? '--'} <Text style={pdfStyles.resumoUnit}>mmHg</Text></Text>
             </View>
             <View style={pdfStyles.resumoCol}>
-              <Text style={pdfStyles.resumoLabel}>Média de Pulso:</Text>
-              <Text style={pdfStyles.resumoValue}>{data.resumo.mediaFrequencia} <Text style={pdfStyles.resumoUnit}>bpm</Text></Text>
+              <Text style={pdfStyles.resumoLabel}>Média Freq.:</Text>
+              <Text style={pdfStyles.resumoValue}>{data.resumo.mediaFrequencia ?? '--'} <Text style={pdfStyles.resumoUnit}>bpm</Text></Text>
+            </View>
+            <View style={pdfStyles.resumoCol}>
+              <Text style={pdfStyles.resumoLabel}>Total Medições:</Text>
+              <Text style={pdfStyles.resumoValue}>{data.totalMedicoes}</Text>
             </View>
           </View>
         </View>
 
-        {/* Card Tendências */}
-        <View style={pdfStyles.card}>
-          <View style={pdfStyles.cardHeaderRow}>
-            <Text style={pdfStyles.cardTitle}>TENDÊNCIAS DE PRESSÃO ARTERIAL <Text style={pdfStyles.cardTitleLight}>(Últimos 30 Dias)</Text></Text>
+        {/* Tabela Completa */}
+        <View style={[pdfStyles.card, { padding: 0, overflow: 'hidden' }]}>
+          <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border }}>
+            <Text style={[pdfStyles.cardTitle, { marginBottom: 0 }]}>TODAS AS MEDIÇÕES <Text style={pdfStyles.cardTitleLight}>({data.totalMedicoes})</Text></Text>
           </View>
 
-          <View style={pdfStyles.legendRow}>
-            <View style={pdfStyles.legendItem}>
-              <View style={[pdfStyles.legendDot, { backgroundColor: COLORS.primary }]} />
-              <Text style={pdfStyles.legendText}>Sistólica</Text>
+          {data.medicoes.length === 0 ? (
+            <View style={{ padding: 20, alignItems: 'center' }}>
+              <Text style={{ color: COLORS.textMuted, fontSize: 12 }}>Nenhuma medição registrada neste período.</Text>
             </View>
-            <View style={pdfStyles.legendItem}>
-              <View style={[pdfStyles.legendDot, { backgroundColor: '#87CEFA' }]} />
-              <Text style={pdfStyles.legendText}>Diastólica</Text>
-            </View>
-          </View>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+              <View style={pdfStyles.table}>
+                <View style={[pdfStyles.tableHeaderRow, { width: 500, paddingHorizontal: 12 }]}>
+                  <Text style={[pdfStyles.th, { width: 70 }]}>Data/Hora</Text>
+                  <Text style={[pdfStyles.th, { width: 70 }]}>Pressão</Text>
+                  <Text style={[pdfStyles.th, { width: 50 }]}>Freq.</Text>
+                  <Text style={[pdfStyles.th, { width: 60 }]}>Status</Text>
+                  <Text style={[pdfStyles.th, { width: 100 }]}>Contexto</Text>
+                  <Text style={[pdfStyles.th, { width: 150 }]}>Observações</Text>
+                </View>
 
-          {/* Gráfico de Linhas 100% Nativo (Sem SVG) para evitar o crash "topSvgLayout" do Expo 52/Fabric */}
-          <View style={{ height: 190, marginTop: 10, alignItems: 'center' }}>
-            <View style={{ width: screenWidth - 80, height: 150, backgroundColor: 'transparent', position: 'relative' }}>
+                {data.medicoes.map((m: Medicao, index: number) => {
+                  const status = calcularStatus(m.sistolica, m.diastolica);
+                  const statusColor = getStatusColor(status);
+                  
+                  let contextoArray: string[] = [];
+                  if (Array.isArray(m.contexto)) contextoArray = m.contexto;
+                  else if (typeof m.contexto === 'string') contextoArray = [m.contexto];
 
-              {/* Linhas de grade horizontais e Eixo Y */}
-              {[0, 50, 100, 150, 200].map((val) => {
-                // Normaliza Y para que 0 seja embaixo (150) e 200 seja no topo (0)
-                const yPos = 150 - (val / 200) * 150;
-                return (
-                  <View key={`grid-${val}`} style={{ position: 'absolute', left: 30, right: 0, top: yPos, height: 1, backgroundColor: COLORS.border, borderStyle: 'dashed' }}>
-                    <Text style={{ position: 'absolute', left: -30, top: -7, fontSize: 9, color: COLORS.textMuted, width: 25, textAlign: 'right' }}>{val}</Text>
-                  </View>
-                );
-              })}
-
-              {/* Plotando os pontos e linhas */}
-              {(() => {
-                const recentData = data.medicoes.slice(0, 10).reverse();
-                if (recentData.length === 0) return null;
-
-                const width = screenWidth - 80;
-                const height = 150;
-                const minX = 30; // Ajustado para dar espaço ao eixo Y
-                const maxX = width - 10;
-
-                // Normalizando Y (0 a 200 mmHg)
-                const getY = (val: number) => height - (Math.min(val, 200) / 200) * height;
-                const getX = (index: number) => minX + (index * (maxX - minX) / Math.max(1, recentData.length - 1));
-
-                // Função para renderizar segmentos de linha usando Views rotacionadas
-                const renderLines = (dataPoints: number[], color: string) => {
-                  const segments = [];
-                  for (let i = 0; i < dataPoints.length - 1; i++) {
-                    const x1 = getX(i);
-                    const y1 = getY(dataPoints[i]);
-                    const x2 = getX(i + 1);
-                    const y2 = getY(dataPoints[i + 1]);
-
-                    const dx = x2 - x1;
-                    const dy = y2 - y1;
-                    const length = Math.sqrt(dx * dx + dy * dy);
-                    const angle = Math.atan2(dy, dx);
-
-                    const cx = (x1 + x2) / 2;
-                    const cy = (y1 + y2) / 2;
-
-                    segments.push(
-                      <View
-                        key={`line-${color}-${i}`}
-                        style={{
-                          position: 'absolute',
-                          left: cx - length / 2,
-                          top: cy - 1, // metade da espessura
-                          width: length,
-                          height: 2,
-                          backgroundColor: color,
-                          transform: [{ rotate: `${angle}rad` }]
-                        }}
-                      />
-                    );
-                  }
-                  return segments;
-                };
-
-                // Função para renderizar os pontos (bolinhas)
-                const renderDots = (dataPoints: number[], color: string) => {
-                  return dataPoints.map((val, i) => (
-                    <View
-                      key={`dot-${color}-${i}`}
-                      style={{
-                        position: 'absolute',
-                        left: getX(i) - 4,
-                        top: getY(val) - 4,
-                        width: 8,
-                        height: 8,
-                        borderRadius: 4,
-                        backgroundColor: color,
-                      }}
-                    />
-                  ));
-                };
-
-                const sisValues = recentData.map((m: Medicao) => m.sistolica);
-                const diaValues = recentData.map((m: Medicao) => m.diastolica);
-
-                return (
-                  <>
-                    {/* Segmentos de Linha */}
-                    {renderLines(sisValues, COLORS.primary)}
-                    {renderLines(diaValues, '#87CEFA')}
-
-                    {/* Pontos nas extremidades */}
-                    {renderDots(sisValues, COLORS.primary)}
-                    {renderDots(diaValues, '#87CEFA')}
-                  </>
-                );
-              })()}
-            </View>
-
-            {/* Eixo X - Datas */}
-            <View style={{ position: 'relative', width: screenWidth - 80, height: 20, marginTop: 6 }}>
-              {(() => {
-                const recentData = data.medicoes.slice(0, 10).reverse();
-                if (recentData.length === 0) return null;
-                const minX = 30;
-                const maxX = (screenWidth - 80) - 10;
-                const getX = (index: number) => minX + (index * (maxX - minX) / Math.max(1, recentData.length - 1));
-
-                return recentData.map((m: Medicao, i: number) => {
-                  // Mostrar todos os labels se houver pouco espaço, ou alternar se houver muitos
-                  // Como limitamos a 10, mostrar todos pode ficar apertado. Exibimos alternado ou com fonte bem pequena.
                   return (
-                    <Text
-                      key={`date-${i}`}
-                      style={{
-                        position: 'absolute',
-                        left: getX(i) - 15,
-                        top: 0,
-                        fontSize: 8,
-                        color: COLORS.textMuted,
-                        width: 30,
-                        textAlign: 'center'
-                      }}
-                    >
-                      {formatarDataCurta(m.dataHora)}
-                    </Text>
+                    <View key={m.id} style={[pdfStyles.tableRow, { width: 500, paddingHorizontal: 12 }, index % 2 === 0 ? pdfStyles.tableRowEven : pdfStyles.tableRowOdd]}>
+                      <View style={{ width: 70, justifyContent: 'center' }}>
+                        <Text style={pdfStyles.td}>{formatarDataCurta(m.dataHora)}</Text>
+                        <Text style={[pdfStyles.td, { fontSize: 8, color: COLORS.textMuted }]}>{formatarHora(m.dataHora)}</Text>
+                      </View>
+                      <View style={{ width: 70, justifyContent: 'center' }}>
+                        <Text style={[pdfStyles.td, { fontWeight: 'bold' }]}>{m.sistolica} / {m.diastolica}</Text>
+                        <Text style={[pdfStyles.td, { fontSize: 8, color: COLORS.textMuted }]}>mmHg</Text>
+                      </View>
+                      <View style={{ width: 50, justifyContent: 'center' }}>
+                        <Text style={pdfStyles.td}>{m.frequenciaCardiaca}</Text>
+                      </View>
+                      
+                      <View style={{ width: 60, justifyContent: 'center' }}>
+                        <View style={{ backgroundColor: statusColor + '20', alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                          <Text style={{ fontSize: 9, color: statusColor, fontWeight: 'bold' }}>{status}</Text>
+                        </View>
+                      </View>
+                      
+                      <View style={{ width: 100, justifyContent: 'center' }}>
+                        <Text style={[pdfStyles.td, { fontSize: 9, color: COLORS.textMuted }]} numberOfLines={2}>
+                          {formatContexts(contextoArray)}
+                        </Text>
+                      </View>
+                      <View style={{ width: 150, justifyContent: 'center' }}>
+                        <Text style={[pdfStyles.td, { fontSize: 9, color: COLORS.textMuted }]} numberOfLines={3}>
+                          {m.observacao || '-'}
+                        </Text>
+                      </View>
+                    </View>
                   );
-                });
-              })()}
-            </View>
-          </View>
-        </View>
-
-        {/* Card Medições Recentes */}
-        <View style={pdfStyles.card}>
-          <Text style={pdfStyles.cardTitle}>MEDIÇÕES RECENTES <Text style={pdfStyles.cardTitleLight}>(Últimos 30 dias)</Text></Text>
-
-          <View style={pdfStyles.table}>
-            <View style={pdfStyles.tableHeaderRow}>
-              <Text style={[pdfStyles.th, { flex: 2 }]}>Data</Text>
-              <Text style={[pdfStyles.th, { flex: 2 }]}>Hora</Text>
-              <Text style={[pdfStyles.th, { flex: 1.5 }]}>Sis</Text>
-              <Text style={[pdfStyles.th, { flex: 1.5 }]}>Dia</Text>
-              <Text style={[pdfStyles.th, { flex: 1 }]}>BPM</Text>
-            </View>
-
-            {data.medicoes.slice(0, 7).map((m: Medicao, index: number) => (
-              <View key={m.id} style={[pdfStyles.tableRow, index % 2 === 0 ? pdfStyles.tableRowEven : pdfStyles.tableRowOdd]}>
-                <Text style={[pdfStyles.td, { flex: 2 }]}>{formatarDataSimples(m.dataHora)}</Text>
-                <Text style={[pdfStyles.td, { flex: 2 }]}>{formatarHora(m.dataHora)}</Text>
-                <Text style={[pdfStyles.td, { flex: 1.5 }]}>{m.sistolica}</Text>
-                <Text style={[pdfStyles.td, { flex: 1.5 }]}>{m.diastolica}</Text>
-                <Text style={[pdfStyles.td, { flex: 1 }]}>{m.frequenciaCardiaca}</Text>
+                })}
               </View>
-            ))}
-          </View>
+            </ScrollView>
+          )}
         </View>
       </View>
     </View>
   );
 };
 
+import { useReportsStore } from '../store/useReportsStore';
+
 // -----------------------------------------------------------------------------
 // Componente: Tela Principal (Wrapper de Painel)
 // -----------------------------------------------------------------------------
 export const ReportsScreen = () => {
-  const { data, loading, erro } = useRelatorio('30dias');
-  const perfil = usePerfilStore((s) => s.perfil);
+  const preferredPeriod = useReportsStore(state => state.preferredPeriod);
+  const { data, loading, erro } = useRelatorio(preferredPeriod);
+  const perfil = useProfileStore((s) => s.profile);
+  const [exportingAction, setExportingAction] = useState<'download' | 'share' | null>(null);
+
+  const handleExportPDF = async (action: 'download' | 'share') => {
+    if (!data || data.vazio) {
+      Alert.alert('Aviso', 'Não há medições neste período para exportar.');
+      return;
+    }
+    
+    setExportingAction(action);
+    try {
+      await exportReportToPDF(data, perfil, action);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível exportar o relatório.');
+    } finally {
+      setExportingAction(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -333,23 +266,31 @@ export const ReportsScreen = () => {
       {/* Botões de Ação */}
       <View style={styles.actionsContainer}>
         {/* Botão Gerar PDF */}
-        <TouchableOpacity style={[styles.actionBtn, styles.btnPrimary]}>
+        <TouchableOpacity 
+          style={[styles.actionBtn, styles.btnPrimary, exportingAction !== null && { opacity: 0.7 }]}
+          onPress={() => handleExportPDF('download')}
+          disabled={exportingAction !== null}
+        >
           <View style={[styles.iconCircle, { backgroundColor: '#4285F4' }]}>
             <MaterialCommunityIcons name="file-document-outline" size={24} color="#FFF" />
           </View>
           <View style={styles.btnTextCol}>
-            <Text style={[styles.btnTitle, { color: '#FFF' }]}>Gerar relatório PDF</Text>
-            <Text style={[styles.btnSubtitle, { color: '#E2E8F0' }]}>Baixe para imprimir ou guardar</Text>
+            <Text style={[styles.btnTitle, { color: '#FFF' }]}>{exportingAction === 'download' ? 'Gerando...' : 'Baixar relatório PDF'}</Text>
+            <Text style={[styles.btnSubtitle, { color: '#E2E8F0' }]}>Salvar arquivo no dispositivo</Text>
           </View>
         </TouchableOpacity>
 
         {/* Botão Compartilhar */}
-        <TouchableOpacity style={[styles.actionBtn, styles.btnSecondary]}>
+        <TouchableOpacity 
+          style={[styles.actionBtn, styles.btnSecondary, exportingAction !== null && { opacity: 0.7 }]}
+          onPress={() => handleExportPDF('share')}
+          disabled={exportingAction !== null}
+        >
           <View style={[styles.iconCircle, { backgroundColor: '#EBF8FF' }]}>
             <MaterialCommunityIcons name="share-variant" size={24} color={COLORS.info} />
           </View>
           <View style={styles.btnTextCol}>
-            <Text style={[styles.btnTitle, { color: COLORS.textStrong }]}>Compartilhar relatório</Text>
+            <Text style={[styles.btnTitle, { color: COLORS.textStrong }]}>{exportingAction === 'share' ? 'Gerando...' : 'Compartilhar relatório'}</Text>
             <Text style={[styles.btnSubtitle, { color: COLORS.textMuted }]}>Envie por WhatsApp ou email</Text>
           </View>
         </TouchableOpacity>

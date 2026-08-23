@@ -1,5 +1,5 @@
 // Types da feature reports
-
+export * from './store';
 import type { Medicao } from '../../measurements';
 
 /** Períodos de agregação suportados pelo relatório (alinhados à feature Evolução). */

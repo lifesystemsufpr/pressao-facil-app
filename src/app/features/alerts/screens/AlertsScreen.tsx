@@ -3,46 +3,33 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Switch } from 'react-native';
 import { AddAlertModal } from '../components/AddAlertModal';
 
-type AlertItem = {
-    id: number;
-    title: string;
-    time: string;
-    period: 'morning' | 'evening';
-    enabled: boolean;
-};
-//obj para definir o alerta
+import { useAlertsStore } from '../store/useAlertsStore';
+import { AlertaEntity } from '../types';
 
 export const AlertsScreen = () => {
 
-    const [alerts, setAlerts] = useState(mockAlerts);
-    //estado para utilizar a função handleToggleAlert de abilitar e desabilitar o alerta
-    const [isModalVisible, setIsModalVisible]=useState(false);
+    const alerts = useAlertsStore(state => state.alerts);
+    const toggleAlert = useAlertsStore(state => state.toggleAlert);
+    
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [editingAlert, setEditingAlert] = useState<AlertaEntity | null>(null);
 
-    const handleToggleAlert = (alertId: number) => {
-        //função que abilita e desabilita o alerta
-        //função que usa o ID do alert já existente, ele rastreia o Id e muda o estado
-        setAlerts((currentAlerts) =>
-            //pegue a lista mais recente de alertas
-            currentAlerts.map((alert) =>
-                //varre a lista até encontrar o id detectado
-                alert.id === alertId
-                    //se for o id q eu procuro...
-                    ? { ...alert, enabled: !alert.enabled }
-                    //[...] se abilitado, desabilite ouu se desabilitado, abilite.
-                    : alert
-                // caso não seja o alerta que procuro, deixe do jeito que está
-            ))
+    const handleToggleAlert = (alertId: string) => {
+        toggleAlert(alertId);
     };
 
     const handleAddReminder = () => {
+        setEditingAlert(null);
         setIsModalVisible(true);
     };
-    //abre o modal Add lembrete
+
+    const handleEditReminder = (alert: AlertaEntity) => {
+        setEditingAlert(alert);
+        setIsModalVisible(true);
+    };
 
     return (
-        //container de scroll
         <>
-            {/* //container de scroll */}
             <ScrollView contentContainerStyle={styles.container}>
                 <View style={styles.header}>
                     <Text style={styles.title}>
@@ -54,101 +41,61 @@ export const AlertsScreen = () => {
                     </Text>
                 </View>
 
-                <View style={styles.alertsContainer}>
-                    {alerts.map((alert) => {
-                        //alerts veio do estado, alert foi criado pelo map para iteração
-                        //map varre os alertas e ve um alert por vez
-                        return (
-                            <View
-                                key={alert.id}
-                                //pegue cada item da lista e add o style
-                                style={[
-                                    styles.alertCard,
-                                    //crie um card no estilo padrao
-                                    !alert.enabled && styles.disabledCard,
-                                    //se desabilitado = aplique o estilo
-                                    //se nao = nao aplique
-                                ]}
-                            >
-                                <View style={styles.cardHeader}>
-                                    <View style={styles.alertInformation}>
-                                        <View style={styles.alertTitleContainer}>
-                                            <Ionicons
-                                                name={alert.period === 'morning'
-                                                    //se for de manhã
-                                                    ? 'sunny-outline'
-                                                    //coloque o sol
-                                                    : 'moon'
-                                                    //se não, a lua
-                                                }
-                                                size={20}
-                                                color={alert.enabled
-                                                    //se tiver abilitado
-                                                    ? '#0068C9'
-                                                    //deixe em azul
-                                                    : '#818894'
-                                                    //se não, em cinza
-                                                } />
-
-                                            <Text
-                                                style={[
-                                                    styles.alertTitle,
-                                                    !alert.enabled && styles.disabledText,
-                                                ]}
-                                            >
-                                                {alert.title}
+                {alerts.length === 0 ? (
+                    <View style={styles.emptyContainer}>
+                        <Ionicons name="notifications-off-outline" size={48} color="#D1D5DB" />
+                        <Text style={styles.emptyText}>Nenhum alerta configurado.</Text>
+                    </View>
+                ) : (
+                    <View style={styles.alertsContainer}>
+                        {alerts.map((alert) => {
+                            return (
+                                <Pressable
+                                    key={alert.id}
+                                    style={[
+                                        styles.alertCard,
+                                        !alert.enabled && styles.disabledCard,
+                                    ]}
+                                    onPress={() => handleEditReminder(alert)}
+                                >
+                                    <View style={styles.cardHeader}>
+                                        <View style={styles.alertInformation}>
+                                            <View style={styles.alertTitleContainer}>
+                                                <Ionicons
+                                                    name={alert.period === 'morning' ? 'sunny-outline' : alert.period === 'afternoon' ? 'partly-sunny-outline' : 'moon'}
+                                                    size={20}
+                                                    color={alert.enabled ? '#0068C9' : '#818894'} 
+                                                />
+                                                <Text style={[styles.alertTitle, !alert.enabled && styles.disabledText]}>
+                                                    {alert.title}
+                                                </Text>
+                                            </View>
+                                            <Text style={[styles.alertTime, !alert.enabled && styles.disabledText]}>
+                                                {alert.time}
                                             </Text>
                                         </View>
-                                        <Text
-                                            style={[
-                                                styles.alertTime,
-                                                //a hora que aparece no card
-                                                !alert.enabled && styles.disabledText,
-                                            ]}
-                                        >
-                                            {alert.time}
+                                        <Switch
+                                            value={alert.enabled}
+                                            onValueChange={() => handleToggleAlert(alert.id)}
+                                            trackColor={{ false: '#D1D5DB', true: '#0068C9' }}
+                                            thumbColor="#FFFFFF" 
+                                        />
+                                    </View>
+
+                                    <View style={styles.frequencyBadge}>
+                                        <Ionicons name="calendar-outline" size={13} color="#6B7280" />
+                                        <Text style={styles.frequencyText}>
+                                            Todos os dias
                                         </Text>
                                     </View>
-                                    <Switch
-                                        //recebe do map se o alert da vez está abilitado ou não
-                                        value={alert.enabled}
-                                        //diz qual é o estado
-                                        onValueChange={() => handleToggleAlert(alert.id)
-                                            //quando clicar no botão de alerta do alerta de x id
-                                        }
-                                        trackColor={{
-                                            false: '#D1D5DB',
-                                            //se value=false desabilitado
-                                            true: '#0068C9',
-                                            //se value=true abilitado
-                                        }}
-                                        thumbColor="#FFFFFF" />
-                                </View>
+                                </Pressable>
+                            );
+                        })}
+                    </View>
+                )}
 
-                                <View style={styles.frequencyBadge}>
-                                    <Ionicons
-                                        name="calendar-outline"
-                                        size={13}
-                                        color="#6B7280" />
-
-                                    <Text style={styles.frequencyText}>
-                                        Todos os dias
-                                    </Text>
-                                </View>
-                            </View>
-                        );
-                    })}
-                </View>
-
-                <Pressable
-                    style={styles.button}
-                    onPress={handleAddReminder}>
-
-                    <Ionicons
-                        name="add"
-                        size={18}
-                        color="#FFFFFF" />
-
+                <Pressable style={styles.button} onPress={handleAddReminder}>
+                    <Ionicons name="add" size={18} color="#FFFFFF" />
                     <Text style={styles.buttonText}>
                         Adicionar lembrete
                     </Text>
@@ -156,26 +103,12 @@ export const AlertsScreen = () => {
             </ScrollView>
             <AddAlertModal
                 visible={isModalVisible}
-                onClose={() => setIsModalVisible(false)} />
-            </>
-)};
-
-const mockAlerts: AlertItem[] = [
-    {
-        id: 1,
-        title: 'Medição da manhã',
-        time: '08:00',
-        period: 'morning',
-        enabled: true,
-    },
-    {
-        id: 2,
-        title: 'Medição da tarde',
-        time: '18:00',
-        period: 'evening',
-        enabled: false,
-    },
-];
+                onClose={() => setIsModalVisible(false)}
+                alertToEdit={editingAlert} 
+            />
+        </>
+    );
+};
 
 const cardBase = {
     backgroundColor: '#FFFFFF',
@@ -211,6 +144,21 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 14,
         color: '#718096',
+    },
+
+    emptyContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 40,
+        marginBottom: 40,
+    },
+    
+    emptyText: {
+        marginTop: 12,
+        fontSize: 16,
+        color: '#9CA3AF',
+        fontWeight: '500',
     },
 
     alertsContainer: {
