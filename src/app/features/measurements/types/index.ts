@@ -9,19 +9,40 @@
  * ficam em {@link CONTEXTO_LABELS}.
  */
 export type ContextoMedicao =
-  | 'briguei_com_alguem'
-  | 'apos_medicamento';
+  | 'before_breakfast'
+  | 'after_breakfast'
+  | 'before_physical_activity'
+  | 'after_physical_activity'
+  | 'before_medication'
+  | 'after_medication'
+  | 'rest'
+  | 'other'
+  | 'emotional_stress';
 
 /** Rótulos legíveis para exibição na UI (público idoso: texto claro e completo). */
 export const CONTEXTO_LABELS: Record<ContextoMedicao, string> = {
-  briguei_com_alguem: 'Briguei com alguém',
-  apos_medicamento: 'Após medicamento',
+  before_breakfast: 'Antes do café da manhã',
+  after_breakfast: 'Depois do café da manhã',
+  before_physical_activity: 'Antes de atividade física',
+  after_physical_activity: 'Depois de atividade física',
+  before_medication: 'Antes da medicação',
+  after_medication: 'Depois da medicação',
+  rest: 'Repouso',
+  other: 'Outro',
+  emotional_stress: 'Estresse emocional / Briga',
 };
 
 /** Lista ordenada dos contextos, útil para seletores na UI. */
 export const CONTEXTOS_MEDICAO: ContextoMedicao[] = [
-  'briguei_com_alguem',
-  'apos_medicamento',
+  'rest',
+  'before_breakfast',
+  'after_breakfast',
+  'before_medication',
+  'after_medication',
+  'before_physical_activity',
+  'after_physical_activity',
+  'emotional_stress',
+  'other'
 ];
 
 /**

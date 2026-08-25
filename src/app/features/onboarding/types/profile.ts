@@ -2,10 +2,14 @@ export type Gender = 'male' | 'female' | 'other';
 export type PersonalData = {
   fullName: string;
   birthDate: string;
-  gender: Gender;
+  gender: Gender | string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
 };
 
 export type ClinicalData = {
+  bloodType?: string;
+  hypertensionType?: string;
   usesBloodPressureMeds: boolean;
   bloodPressureMedsName?: string;
   familyHistoryHypertension: boolean;

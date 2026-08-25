@@ -11,6 +11,7 @@ import { ContextCard } from '../components/ContextCard';
 import { HamburgerMenuIcon } from '../../../shared/components/HamburgerMenuIcon';
 import { Ionicons } from '@expo/vector-icons';
 import { useMedicoesStore } from '../store/useMedicoesStore';
+import { CONTEXTO_LABELS } from '../types';
 
 export const ResultadosMedicaoScreen = ({ route, navigation }: RootStackScreenProps<'ResultadosMedicaoModal'>) => {
   const { id } = route.params;
@@ -47,9 +48,9 @@ export const ResultadosMedicaoScreen = ({ route, navigation }: RootStackScreenPr
   const dateStr = `${pad(data.getDate())}/${pad(data.getMonth() + 1)}/${data.getFullYear()}`;
   const timeStr = `${pad(data.getHours())}:${pad(data.getMinutes())}`;
   const contextLabels = Array.isArray(medicao.contexto)
-    ? medicao.contexto.map(c => c === 'briguei_com_alguem' ? 'Briguei com alguém' : 'Após medicamento')
+    ? medicao.contexto.map(c => CONTEXTO_LABELS[c as keyof typeof CONTEXTO_LABELS] || 'Outro')
     : typeof medicao.contexto === 'string'
-      ? [medicao.contexto === 'briguei_com_alguem' ? 'Briguei com alguém' : 'Após medicamento']
+      ? [CONTEXTO_LABELS[medicao.contexto as keyof typeof CONTEXTO_LABELS] || 'Outro']
       : ['Nenhum contexto'];
 
   const measurement = {

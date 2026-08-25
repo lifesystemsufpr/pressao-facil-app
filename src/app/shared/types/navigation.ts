@@ -3,6 +3,11 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { PersonalData } from '../../features/onboarding/types/profile';
 
+export type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+};
+
 export type DashboardStackParamList = {
   Home: undefined;
 };
@@ -49,6 +54,7 @@ export type RootStackParamList = {
   Alerts: NavigatorScreenParams<AlertsStackParamList>;
   Reports: NavigatorScreenParams<ReportsStackParamList>;
   Profile: NavigatorScreenParams<ProfileStackParamList>;
+  Auth: NavigatorScreenParams<AuthStackParamList>;
 };
 
 // --- Tipagens Utilitárias para as Telas ---

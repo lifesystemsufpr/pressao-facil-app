@@ -35,20 +35,56 @@ export function useDashboardStats() {
     const medicoesHoje = historico.filter((medicao) => isMesmoDia(medicao.dataHora));
     const quantidadeMedicoesHoje = medicoesHoje.length;
 
-    // 3. Construir o Resumo (Summary) baseado na quantidade
-    const summary: DashboardSummaryItem[] = enabledAlerts.map((alert, index) => {
-      const isConcluido = index < quantidadeMedicoesHoje;
+    // 3. Parear medições com alertas (cada medição conclui no máximo 1 alerta)
+    const matchedMeasurements = new Set<string>();
+
+    const summary: DashboardSummaryItem[] = enabledAlerts.map((alert) => {
+      const [alertHour, alertMin] = alert.time.split(':').map(Number);
+      const alertTotalMins = alertHour * 60 + alertMin;
+
+      let closestMeasurementId: string | null = null;
+      let minDiff = 120; // limite de 2 horas (120 minutos)
+
+      for (const m of medicoesHoje) {
+        if (matchedMeasurements.has(m.id)) continue;
+
+        const mDate = new Date(m.dataHora);
+        const mTotalMins = mDate.getHours() * 60 + mDate.getMinutes();
+        const diff = Math.abs(mTotalMins - alertTotalMins);
+
+        if (diff <= minDiff) {
+          minDiff = diff;
+          closestMeasurementId = m.id;
+        }
+      }
+
+      if (closestMeasurementId) {
+        matchedMeasurements.add(closestMeasurementId);
+      }
+
       return {
         id: alert.id,
         label: alert.title,
-        status: isConcluido ? 'Concluído' : 'Pendente',
+        status: closestMeasurementId ? 'Concluído' : 'Pendente',
       };
     });
 
     // 4. Identificar a próxima medição
-    // O próximo alerta é o primeiro alerta pendente.
-    // Se todos estiverem concluídos, mostramos o primeiro alerta do dia seguinte (o primeiro da lista).
-    const nextPendingIndex = summary.findIndex((item) => item.status === 'Pendente');
+    // O próximo alerta ideal é o primeiro pendente que seja >= agora.
+    const now = new Date();
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+
+    let nextPendingIndex = enabledAlerts.findIndex((alert, index) => {
+      if (summary[index].status === 'Concluído') return false;
+      const [h, m] = alert.time.split(':').map(Number);
+      return (h * 60 + m) >= currentMins;
+    });
+
+    // Se todos os alertas pendentes já passaram (atrasados), pega o primeiro deles
+    if (nextPendingIndex === -1) {
+      nextPendingIndex = summary.findIndex((item) => item.status === 'Pendente');
+    }
+
     const nextMeasurementTime =
       nextPendingIndex !== -1
         ? enabledAlerts[nextPendingIndex].time

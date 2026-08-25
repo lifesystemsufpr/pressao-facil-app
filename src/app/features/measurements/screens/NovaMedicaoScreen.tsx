@@ -3,10 +3,10 @@ import { View, Text, StyleSheet, Pressable, ScrollView, TextInput, Alert } from 
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useMedicoesStore } from '../store/useMedicoesStore';
-import { Medicao, ContextoMedicao } from '../types';
+import { Medicao, ContextoMedicao, CONTEXTOS_MEDICAO, CONTEXTO_LABELS } from '../types';
 
 type MeasurementContext = {
-    id: number;
+    id: string;
     label: string;
     selected: boolean;
 };
@@ -38,7 +38,7 @@ export const NovaMedicaoScreen = () => {
     const handleSetDate = (text: string) => setDate(text.replace(/[^0-9/]/g, ''));
     const handleSetHour = (text: string) => setHour(text.replace(/[^0-9:]/g, ''));
 
-    const handleToggleContext = (contextId: number) => {
+    const handleToggleContext = (contextId: string) => {
         //uso o handle quando preciso aplicar alguma lógica, mascara etc
         //função que marca ou desmarca a caixa de contexto
         //pega o id do contexto que foi clicado
@@ -77,11 +77,9 @@ export const NovaMedicaoScreen = () => {
                 { text: "Cancelar", style: "cancel" },
                 {
                     text: "Salvar",
-                    onPress: () => {
+                    onPress: async () => {
                         const selectedContexts = measurementContexts.filter(c => c.selected);
-                        const contextosRaw: ContextoMedicao[] = selectedContexts.map(c => 
-                            c.id === 1 ? 'briguei_com_alguem' : 'apos_medicamento'
-                        );
+                        const contextosRaw: ContextoMedicao[] = selectedContexts.map(c => c.id as ContextoMedicao);
 
                         // Parse date (DD/MM/YYYY) and hour (HH:MM) to ISO string
                         const [day, month, year] = date.split('/');
@@ -98,8 +96,12 @@ export const NovaMedicaoScreen = () => {
                             observacao: observation.trim() || undefined,
                         };
 
-                        adicionarMedicao(novaMedicao);
-                        (navigation as any).navigate('ResultadosMedicaoModal', { id: novaMedicao.id });
+                        try {
+                            const newId = await adicionarMedicao(novaMedicao);
+                            (navigation as any).navigate('ResultadosMedicaoModal', { id: newId });
+                        } catch (error) {
+                            Alert.alert('Erro', 'Não foi possível salvar a medição.');
+                        }
                     }
                 }
             ]
@@ -265,18 +267,11 @@ export const NovaMedicaoScreen = () => {
     )
 };
 
-const DEFAULT_MEASUREMENT_CONTEXTS: MeasurementContext[] = [
-    {
-        id: 1,
-        label: 'Briguei com alguém',
-        selected: false,
-    },
-    {
-        id: 2,
-        label: 'Após medicamento',
-        selected: false,
-    },
-];
+const DEFAULT_MEASUREMENT_CONTEXTS = CONTEXTOS_MEDICAO.map(ctx => ({
+    id: ctx,
+    label: CONTEXTO_LABELS[ctx],
+    selected: false,
+}));
 
 const cardBase = {
     borderRadius: 14,

@@ -5,11 +5,29 @@ import { ProfileStore, UserProfile } from '../types';
 
 export const useProfileStore = create<ProfileStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       profile: null,
       _hasHydrated: false,
 
-      salvar: (data) => {
+      carregarPerfil: async () => {
+        try {
+          const { api } = await import('../../../shared/services/api');
+          const response = await api.get('/users/me');
+          if (response.data.profile) {
+            set((state) => ({
+              ...state,
+              profile: {
+                ...response.data.profile,
+                version: 1,
+              },
+            }));
+          }
+        } catch (error) {
+          console.log('Failed to fetch profile', error);
+        }
+      },
+
+      salvar: async (data) => {
         const now = new Date().toISOString();
         const newProfile: UserProfile = {
           ...data,
@@ -19,10 +37,35 @@ export const useProfileStore = create<ProfileStore>()(
           updatedAt: now,
         };
 
-        set((state) => ({
-          ...state,
-          profile: newProfile,
-        }));
+        try {
+          const { api } = await import('../../../shared/services/api');
+          
+          const payload = {
+            ...data,
+            birthDate: data.birthDate ? data.birthDate.split('/').reverse().join('-') : undefined
+          };
+
+          const method = get().profile ? 'patch' : 'post';
+          
+          try {
+            await api[method]('/profile', payload);
+          } catch (err: any) {
+            // Se tentou criar e já existe (409 Conflict), tenta fazer um patch (atualizar)
+            if (method === 'post' && err.response?.status === 409) {
+              await api.patch('/profile', payload);
+            } else {
+              throw err;
+            }
+          }
+          
+          set((state) => ({
+            ...state,
+            profile: newProfile,
+          }));
+        } catch (error) {
+          console.log('Failed to save profile', error);
+          throw error;
+        }
       },
 
       limpar: () => {

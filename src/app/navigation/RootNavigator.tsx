@@ -8,6 +8,7 @@ import { AlertsNavigator } from '../features/alerts';
 import { ReportsNavigator } from '../features/reports';
 import { ProfileNavigator } from '../features/profile';
 import { MenuScreen } from '../shared/components/MenuScreen';
+import { AuthNavigator } from '../features/auth/navigation/AuthNavigator';
 import {
   BodyMeasurementsScreen, PersonalDataScreen, ClinicalDataScreen, SplashScreen
 } from '../features/onboarding';
@@ -17,11 +18,15 @@ import { useAlertsStore } from '../features/alerts/store/useAlertsStore';
 import { useEvolutionStore } from '../features/evolution/store/useEvolutionStore';
 import { useProfileStore } from '../features/profile/store/useProfileStore';
 import { useReportsStore } from '../features/reports/store/useReportsStore';
+import { useSessionStore } from '../shared/store/sessionStore';
 import { Feather } from '@expo/vector-icons';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator = () => {
+  const token = useSessionStore(state => state.token);
+  const sessionHydrated = useSessionStore(state => state._hasHydrated);
+  
   const profile = useProfileStore(state => state.profile);
   const profileHydrated = useProfileStore(state => state._hasHydrated);
   const medicoesHydrated = useMedicoesStore(state => state._hasHydrated);
@@ -30,7 +35,25 @@ export const RootNavigator = () => {
   const evolutionHydrated = useEvolutionStore(state => state._hasHydrated);
   const reportsHydrated = useReportsStore(state => state._hasHydrated);
   
-  if (!profileHydrated || !medicoesHydrated || !dashboardHydrated || !alertsHydrated || !evolutionHydrated || !reportsHydrated) return <SplashScreen />;
+  const carregarPerfil = useProfileStore(state => state.carregarPerfil);
+  const carregarHistorico = useMedicoesStore(state => state.carregarHistorico);
+
+  React.useEffect(() => {
+    if (token) {
+      carregarPerfil();
+      carregarHistorico();
+    }
+  }, [token]);
+
+  if (!sessionHydrated || !profileHydrated || !medicoesHydrated || !dashboardHydrated || !alertsHydrated || !evolutionHydrated || !reportsHydrated) return <SplashScreen />;
+
+  if (!token) {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Auth" component={AuthNavigator} />
+      </Stack.Navigator>
+    );
+  }
 
   if (!profile) {
     return (

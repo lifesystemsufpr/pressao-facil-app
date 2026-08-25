@@ -5,16 +5,26 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../shared/types/navigation';
 
+import { useSessionStore } from '../store/sessionStore';
+import { useProfileStore } from '../../features/profile/store/useProfileStore';
+
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const MenuScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
+  const clearSession = useSessionStore(state => state.clearSession);
+  const limparPerfil = useProfileStore(state => state.limpar);
 
   const handleNavigate = (screen: keyof RootStackParamList) => {
     navigation.goBack(); // Fecha o menu
     // @ts-ignore - simplificação
     navigation.navigate(screen);
+  };
+
+  const handleLogout = () => {
+    limparPerfil();
+    clearSession();
   };
 
   return (
@@ -44,6 +54,15 @@ export const MenuScreen = () => {
             onPress={() => handleNavigate('Profile')}
           >
             <Text style={styles.menuText}>Meu Perfil</Text>
+          </TouchableOpacity>
+
+          <View style={styles.divider} />
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={handleLogout}
+          >
+            <Text style={[styles.menuText, { color: '#B42318' }]}>Sair do Aplicativo</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -87,4 +106,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginVertical: 4,
+  }
 });

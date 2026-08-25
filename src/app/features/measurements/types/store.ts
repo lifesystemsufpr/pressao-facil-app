@@ -6,7 +6,8 @@ export interface MedicoesState {
 }
 
 export interface MedicoesActions {
-  adicionarMedicao: (medicao: Medicao) => void;
+  carregarHistorico: () => Promise<void>;
+  adicionarMedicao: (medicao: Medicao) => Promise<void>;
   limparHistorico: () => void;
   setHasHydrated: (state: boolean) => void;
 }
