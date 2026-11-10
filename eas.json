@@ -9,7 +9,11 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://18.230.75.255/pressao-facil/api",
+        "APP_ALLOW_HTTP": "true"
+      }
     },
     "production": {
       "autoIncrement": true
