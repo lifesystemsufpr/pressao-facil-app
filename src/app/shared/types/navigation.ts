@@ -25,6 +25,7 @@ export type EvolutionStackParamList = {
 
 export type ProfileStackParamList = {
   Perfil: undefined;
+  CompartilharProfissional: undefined;
 };
 
 export type AlertsStackParamList = {

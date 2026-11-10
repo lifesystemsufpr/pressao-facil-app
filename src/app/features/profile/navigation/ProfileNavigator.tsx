@@ -3,6 +3,7 @@ import { TouchableOpacity } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ProfileStackParamList } from '../../../shared/types/navigation';
 import { PerfilScreen } from '../screens/PerfilScreen';
+import { CompartilharProfissionalScreen } from '../screens/CompartilharProfissionalScreen';
 import { HamburgerMenuIcon } from '../../../shared/components/HamburgerMenuIcon';
 import { Feather } from '@expo/vector-icons';
 
@@ -39,6 +40,17 @@ export const ProfileNavigator = () => {
             </TouchableOpacity>
           ),
         })}
+      />
+      <Stack.Screen
+        name="CompartilharProfissional"
+        component={CompartilharProfissionalScreen}
+        options={{
+          title: 'Compartilhar',
+          headerTitleAlign: 'center',
+          headerTintColor: '#0056b3',
+          headerStyle: { backgroundColor: '#F8F9FA' },
+          headerTitleStyle: { color: '#0056b3', fontWeight: 'bold', fontSize: 20 },
+        }}
       />
     </Stack.Navigator>
   );

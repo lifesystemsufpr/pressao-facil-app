@@ -7,6 +7,10 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ProfileStackParamList } from '../../../shared/types/navigation';
 import { useProfileStore } from '../store/useProfileStore';
 import { UserProfile } from '../types';
 
@@ -56,6 +60,9 @@ export const PerfilScreen = () => {
 // ---------------------------------------------------------------------------
 
 const PerfilComDados = ({ perfil }: { perfil: UserProfile }) => {
+  const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
+  const insets = useSafeAreaInsets();
+
   const handleExportarDados = () => {
     Alert.alert(
       'Exportar Dados (PDF)',
@@ -78,7 +85,7 @@ const PerfilComDados = ({ perfil }: { perfil: UserProfile }) => {
   return (
     <ScrollView
       style={styles.screen}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: 20 + insets.bottom }]}
       accessibilityLabel="Tela de perfil"
     >
 
@@ -117,6 +124,12 @@ const PerfilComDados = ({ perfil }: { perfil: UserProfile }) => {
       <Text style={styles.sectionTitle}>Configurações</Text>
       <View style={styles.divider} />
 
+      <ItemConfiguracao
+        icone="⇄"
+        rotulo="Compartilhar com profissional"
+        onPress={() => navigation.navigate('CompartilharProfissional')}
+        accessibilityHint="Gera um código para um profissional de saúde acompanhar suas medições"
+      />
       <ItemConfiguracao
         icone="⬆"
         rotulo="Exportar Dados (PDF)"
