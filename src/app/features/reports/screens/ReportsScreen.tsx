@@ -7,6 +7,7 @@ import {
   Dimensions,
   TouchableOpacity,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRelatorio } from '../hooks';
 import { useProfileStore } from '../../profile/store';
 import type { RelatorioData } from '../types';
@@ -202,6 +203,7 @@ import { useReportsStore } from '../store/useReportsStore';
 // Componente: Tela Principal (Wrapper de Painel)
 // -----------------------------------------------------------------------------
 export const ReportsScreen = () => {
+  const insets = useSafeAreaInsets();
   const preferredPeriod = useReportsStore(state => state.preferredPeriod);
   const { data, loading, erro } = useRelatorio(preferredPeriod);
   const perfil = useProfileStore((s) => s.profile);
@@ -240,7 +242,7 @@ export const ReportsScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.content, { paddingBottom: 40 + insets.bottom }]}>
       <View style={styles.header}>
         <Text style={styles.title}>Relatórios</Text>
         <Text style={styles.subtitle}>Seus dados de saúde prontos para envio.</Text>
@@ -311,7 +313,6 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     paddingTop: 10,
-    paddingBottom: 40,
   },
   centered: {
     justifyContent: 'center',
