@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Switch } from 'react-native';
 import { AddAlertModal } from '../components/AddAlertModal';
@@ -7,6 +8,7 @@ import { useAlertsStore } from '../store/useAlertsStore';
 import { AlertaEntity } from '../types';
 
 export const AlertsScreen = () => {
+    const insets = useSafeAreaInsets();
 
     const alerts = useAlertsStore(state => state.alerts);
     const toggleAlert = useAlertsStore(state => state.toggleAlert);
@@ -30,7 +32,7 @@ export const AlertsScreen = () => {
 
     return (
         <>
-            <ScrollView contentContainerStyle={styles.container}>
+            <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 20 + insets.bottom }]}>
                 <View style={styles.header}>
                     <Text style={styles.title}>
                         Meus Alertas
@@ -126,7 +128,7 @@ const cardBase = {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        flexGrow: 1,
         padding: 20,
         backgroundColor: '#F8F7FC'
     },

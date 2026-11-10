@@ -3,6 +3,12 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ProfileStore, UserProfile } from '../types';
 
+// A API devolve a data em ISO; o app guarda e exibe DD/MM/AAAA.
+const paraDataBr = (valor?: string | null) => {
+  const iso = valor?.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return iso ? `${iso[3]}/${iso[2]}/${iso[1]}` : valor ?? '';
+};
+
 export const useProfileStore = create<ProfileStore>()(
   persist(
     (set, get) => ({
@@ -18,6 +24,7 @@ export const useProfileStore = create<ProfileStore>()(
               ...state,
               profile: {
                 ...response.data.profile,
+                birthDate: paraDataBr(response.data.profile.birthDate),
                 version: 1,
               },
             }));

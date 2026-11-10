@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, TextInput, Alert, KeyboardAvoidingView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useMedicoesStore } from '../store/useMedicoesStore';
 import { Medicao, ContextoMedicao, CONTEXTOS_MEDICAO, CONTEXTO_LABELS } from '../types';
@@ -13,6 +15,8 @@ type MeasurementContext = {
 
 export const NovaMedicaoScreen = () => {
     const navigation = useNavigation();
+    const headerHeight = useHeaderHeight();
+    const insets = useSafeAreaInsets();
     const [measurementContexts, setMeasurementContexts] = useState(
         DEFAULT_MEASUREMENT_CONTEXTS
     );
@@ -110,9 +114,11 @@ export const NovaMedicaoScreen = () => {
 
     return (
 
+        <KeyboardAvoidingView style={styles.scrollView} behavior="padding" keyboardVerticalOffset={headerHeight}>
         <ScrollView
     style={styles.scrollView}
-    contentContainerStyle={styles.container}
+    contentContainerStyle={[styles.container, { paddingBottom: 24 + insets.bottom }]}
+    keyboardShouldPersistTaps="handled"
 >
 
             <View style={styles.measurementsRow}>
@@ -264,6 +270,7 @@ export const NovaMedicaoScreen = () => {
                 </Text>
             </Pressable>
         </ScrollView>
+        </KeyboardAvoidingView>
     )
 };
 
@@ -293,7 +300,6 @@ const styles = StyleSheet.create({
     container: {
     paddingHorizontal: 16,
     paddingTop: 20,
-    paddingBottom: 24,
     backgroundColor: '#F8F7FC',
 },
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { api } from '../../../shared/services/api';
@@ -37,8 +37,8 @@ export const LoginScreen = ({ navigation }: Props) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.content}>
+      <KeyboardAvoidingView style={styles.flex} behavior="padding">
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Pressão Fácil</Text>
           <Text style={styles.subtitle}>Bem-vindo de volta!</Text>
 
@@ -70,7 +70,7 @@ export const LoginScreen = ({ navigation }: Props) => {
           <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate('Register')}>
             <Text style={styles.secondaryButtonText}>Não tem uma conta? Crie aqui.</Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -79,7 +79,7 @@ export const LoginScreen = ({ navigation }: Props) => {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F9F9FF' },
   flex: { flex: 1 },
-  content: { paddingHorizontal: 16, flex: 1, justifyContent: 'center' },
+  content: { paddingHorizontal: 16, flexGrow: 1, justifyContent: 'center' },
   title: { color: '#0567B8', fontSize: 36, lineHeight: 40, fontWeight: '800', marginBottom: 8, textAlign: 'center' },
   subtitle: { color: '#4F5562', fontSize: 18, marginBottom: 32, textAlign: 'center' },
   label: { color: '#484D59', fontSize: 14, fontWeight: '700', marginTop: 16, marginBottom: 8, marginLeft: 4 },

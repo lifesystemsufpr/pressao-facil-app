@@ -12,6 +12,7 @@ import { HamburgerMenuIcon } from '../../../shared/components/HamburgerMenuIcon'
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, Text } from 'react-native';
 import { useMedicoesStore } from '../store/useMedicoesStore';
+import { CONTEXTO_LABELS } from '../types';
 
 export const DetalhesMedicaoScreen = ({ route, navigation }: MeasurementsScreenProps<'DetalhesMedicao'>) => {
   const { id } = route.params;
@@ -43,11 +44,9 @@ export const DetalhesMedicaoScreen = ({ route, navigation }: MeasurementsScreenP
   const pad = (n: number) => String(n).padStart(2, '0');
   const dateStr = `${pad(data.getDate())}/${pad(data.getMonth() + 1)}/${data.getFullYear()}`;
   const timeStr = `${pad(data.getHours())}:${pad(data.getMinutes())}`;
-  const contextLabels = Array.isArray(medicao.contexto)
-    ? medicao.contexto.map(c => c === 'briguei_com_alguem' ? 'Briguei com alguém' : 'Após medicamento')
-    : typeof medicao.contexto === 'string'
-      ? [medicao.contexto === 'briguei_com_alguem' ? 'Briguei com alguém' : 'Após medicamento']
-      : ['Nenhum contexto'];
+  const contextLabels = medicao.contexto?.length
+    ? medicao.contexto.map((c) => CONTEXTO_LABELS[c] ?? c)
+    : ['Nenhum contexto'];
 
   const measurement = {
     systolic: medicao.sistolica,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { api } from '../../../shared/services/api';
@@ -36,13 +36,13 @@ export const RegisterScreen = ({ navigation }: Props) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.flex} behavior="padding">
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#0567B8" />
           </TouchableOpacity>
         </View>
-        <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Crie sua conta</Text>
 
           <Text style={styles.label}>Email</Text>
@@ -69,7 +69,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
           <TouchableOpacity style={styles.primaryButton} onPress={handleRegister} disabled={loading}>
             {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryButtonText}>Cadastrar</Text>}
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F9F9FF' },
   flex: { flex: 1 },
   header: { paddingHorizontal: 16, paddingTop: 16 },
-  content: { paddingHorizontal: 16, flex: 1, justifyContent: 'center' },
+  content: { paddingHorizontal: 16, flexGrow: 1, justifyContent: 'center' },
   title: { color: '#0567B8', fontSize: 32, lineHeight: 40, fontWeight: '800', marginBottom: 32 },
   label: { color: '#484D59', fontSize: 14, fontWeight: '700', marginTop: 16, marginBottom: 8, marginLeft: 4 },
   input: { height: 56, borderWidth: 1, borderColor: '#C7CEDD', borderRadius: 11, paddingHorizontal: 16, color: '#20232B', fontSize: 17, backgroundColor: '#FAFAFF' },

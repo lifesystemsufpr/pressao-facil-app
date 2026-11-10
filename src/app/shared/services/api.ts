@@ -1,17 +1,9 @@
 import axios from 'axios';
 import { useSessionStore } from '../store/sessionStore';
-import { Platform } from 'react-native';
 
-// Para Android no emulador, localhost é 10.0.2.2.
-// Para iOS no simulador ou Web, localhost funciona normalmente.
-// Num dispositivo físico, você deve usar o IP da máquina na rede (ex: 192.168.0.x).
-const getBaseUrl = () => {
-  if (__DEV__) {
-    // Como você usou "adb reverse", o localhost vai funcionar em qualquer dispositivo Android/iOS
-    return 'http://localhost:3000';
-  }
-  return 'https://sua-api-em-producao.com';
-};
+// A URL vem de EXPO_PUBLIC_API_URL, definida por perfil no eas.json.
+// Sem ela (desenvolvimento local), usa localhost com "adb reverse tcp:3000 tcp:3000".
+const getBaseUrl = () => process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
 export const api = axios.create({
   baseURL: getBaseUrl(),

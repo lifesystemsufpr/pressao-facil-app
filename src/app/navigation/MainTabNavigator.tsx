@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainTabParamList, RootStackParamList } from '../shared/types/navigation';
 import { DashboardNavigator } from '../features/dashboard';
 import { MeasurementsNavigator } from '../features/measurements';
@@ -10,13 +11,16 @@ import { EvolutionNavigator } from '../features/evolution';
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const EmptyScreen = () => null;
 
-export const MainTabNavigator = () => (
+export const MainTabNavigator = () => {
+  const insets = useSafeAreaInsets();
+
+  return (
   <Tab.Navigator screenOptions={({ route }) => ({
     headerShown: false,
     tabBarActiveTintColor: '#0567B8',
     tabBarInactiveTintColor: '#4A4F5C',
     tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
-    tabBarStyle: { height: 72, paddingTop: 8, paddingBottom: 10, backgroundColor: '#F3F5FC' },
+    tabBarStyle: { height: 72 + insets.bottom, paddingTop: 8, paddingBottom: 10 + insets.bottom, backgroundColor: '#F3F5FC' },
     tabBarIcon: ({ color, size }) => {
       const icons: Record<keyof MainTabParamList, keyof typeof Ionicons.glyphMap> = {
         DashboardTab: 'home',
@@ -38,4 +42,5 @@ export const MainTabNavigator = () => (
       })} />
     <Tab.Screen name="EvolutionTab" component={EvolutionNavigator} options={{ title: 'Evolução' }} />
   </Tab.Navigator>
-);
+  );
+};

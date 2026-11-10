@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput,
+  Alert, KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput,
   TouchableOpacity, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -87,7 +87,7 @@ export const ClinicalDataScreen = ({ navigation, route }: Props) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.flex} behavior="padding">
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <OnboardingHeader step={3} onBack={() => navigation.goBack()} />
           <Text style={styles.title}>Dados Clínicos</Text>

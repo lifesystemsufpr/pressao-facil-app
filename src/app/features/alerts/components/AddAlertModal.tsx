@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View, TextInput, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, View, TextInput, Alert, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAlertsStore } from '../store/useAlertsStore';
 import { PeriodoAlerta, AlertaEntity } from '../types';
 
@@ -11,6 +12,7 @@ type AddAlertModalProps = {
 };
 
 export const AddAlertModal = ({ visible, onClose, alertToEdit }: AddAlertModalProps) => {
+    const insets = useSafeAreaInsets();
     const addAlert = useAlertsStore(s => s.addAlert);
     const updateAlert = useAlertsStore(s => s.updateAlert);
     const removeAlert = useAlertsStore(s => s.removeAlert);
@@ -104,10 +106,10 @@ export const AddAlertModal = ({ visible, onClose, alertToEdit }: AddAlertModalPr
         >
             <View style={styles.overlay}>
                 <KeyboardAvoidingView 
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+                    behavior="padding" 
                     style={styles.keyboardView}
                 >
-                    <View style={styles.modalContainer}>
+                    <View style={[styles.modalContainer, { paddingBottom: 32 + insets.bottom }]}>
                         <View style={styles.handle} />
 
                         <Text style={styles.title}>
@@ -172,7 +174,6 @@ const styles = StyleSheet.create({
         width: '100%',
         paddingHorizontal: 24,
         paddingTop: 14,
-        paddingBottom: 32,
         borderTopLeftRadius: 28,
         borderTopRightRadius: 28,
         backgroundColor: '#FFFFFF',
